@@ -25,7 +25,8 @@ conleyreg(
 \item{formula}{regression equation as formula or character string}
 
 \item{data}{input data, either in non-spatial data frame format (includes tibbles and data tables) with columns denoting coordinates or in sf format with a spatial
-points geometry. When using a non-spatial data frame format, the coordinates must be longlat. sf objects can use any projection.}
+points geometry. When using a non-spatial data frame format, the coordinates must be longlat. sf objects can use any projection. Note that the projection can influence
+the computed distances, which is a general phenomenon in GIS software and not specific to \code{conleyreg}.}
 
 \item{dist_cutoff}{the distance cutoff in km}
 
@@ -41,7 +42,7 @@ location over time.}
 
 \item{lon}{the variable specifying the longitude in longlat format}
 
-\item{kernel}{the kernel applied within the radius. Either \code{bartlett} (default) or \code{uniform}}
+\item{kernel}{the kernel applied within the radius. Either \code{bartlett} (default) or \code{uniform}.}
 
 \item{lag_cutoff}{the cutoff along the time dimension. Defaults to 0, meaning that standard errors are only adjusted cross-sectionally.}
 
@@ -57,14 +58,53 @@ faster than the alternative choice of GEOS with \code{sf::sf_use_s2(F)}. With \c
 haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.}
 }
 \value{
-Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors. It can be printed in Latex format using e.g. the \code{texreg} package.
+Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors.
 }
 \description{
 This function estimates ols, logit, and probit models with Conley standard errors.
 }
 \details{
 This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
-(iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley.
+(iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
+}
+\examples{
+\dontrun{
+# Generate cross-sectional example data
+data <- data.frame(y = sample(c(0, 1), 100, replace = T),
+  x1 = stats::runif(100, -50, 50),
+  lat = runif(100, -90, 90),
+  lon = runif(100, -180, 180))
+
+# Estimate ols model with Conley standard errors using a 1000 km radius
+conleyreg(y ~ x1, data, 1000, lat = "lat", lon = "lon")
+
+# Estimate same model with an sf object as input
+conleyreg(y ~ x1, sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), 1000)
+
+# Estimate same model with an sf object of another projection as input
+conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), crs = "+proj=aeqd"), 1000)
+
+# Estimate logit model
+conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
+
+# Add variable
+data$x2 <- sample(1:5, 100, replace = T)
+
+# Estimate ols model with fixed effects
+conleyreg(y ~ x1 | x2, data, 1000, lat = "lat", lon = "lon")
+
+# Estimate probit model with fixed effects
+conleyreg(y ~ x1 | x2, data, 1000, "probit", lat = "lat", lon = "lon")
+
+# Add panel variables
+data$time <- rep(1:10, each = 10)
+data$unit <- rep(1:10, times = 10)
+
+# Estimate ols model using panel data
+conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
+}
+
+
 }
 \references{
 \insertCite{*}{conleyreg}

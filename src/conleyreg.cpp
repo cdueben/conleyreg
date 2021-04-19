@@ -110,7 +110,6 @@ arma::mat lp_filling(arma::mat distances, arma::mat X, arma::vec e, unsigned lon
   return f;
 }
 
-
 // Function targeting serial correlation
 // [[Rcpp::export]]
 arma::mat time_dist(arma::vec times, double lag_cutoff, arma::mat X, arma::vec res, unsigned int n_obs_u, int n_vars) {

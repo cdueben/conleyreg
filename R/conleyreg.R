@@ -4,7 +4,8 @@
 #'
 #' @param formula regression equation as formula or character string
 #' @param data input data, either in non-spatial data frame format (includes tibbles and data tables) with columns denoting coordinates or in sf format with a spatial
-#' points geometry. When using a non-spatial data frame format, the coordinates must be longlat. sf objects can use any projection.
+#' points geometry. When using a non-spatial data frame format, the coordinates must be longlat. sf objects can use any projection. Note that the projection can influence
+#' the computed distances, which is a general phenomenon in GIS software and not specific to \code{conleyreg}.
 #' @param dist_cutoff the distance cutoff in km
 #' @param model the applied model. Either \code{ols} (default), \code{logit}, or \code{probit}. \code{logit} and \code{probit} are currently restricted to
 #' cross-sectional applications.
@@ -13,7 +14,7 @@
 #' @param time the variable identifying the time dimension
 #' @param lat the variable specifying the latitude in longlat format
 #' @param lon the variable specifying the longitude in longlat format
-#' @param kernel the kernel applied within the radius. Either \code{bartlett} (default) or \code{uniform}
+#' @param kernel the kernel applied within the radius. Either \code{bartlett} (default) or \code{uniform}.
 #' @param lag_cutoff the cutoff along the time dimension. Defaults to 0, meaning that standard errors are only adjusted cross-sectionally.
 #' @param intercept boolean specifying whether to include an intercept. Defaults to \code{TRUE}. Fixed effects models omit the intercept automatically.
 #' @param verbose boolean specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.
@@ -24,9 +25,47 @@
 #' haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.
 #'
 #' @details This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
-#' (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley.
+#' (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
 #'
-#' @return Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors. It can be printed in Latex format using e.g. the \code{texreg} package.
+#' @return Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors.
+#'
+#' @examples
+#' \dontrun{
+#' # Generate cross-sectional example data
+#' data <- data.frame(y = sample(c(0, 1), 100, replace = T),
+#'   x1 = stats::runif(100, -50, 50),
+#'   lat = runif(100, -90, 90),
+#'   lon = runif(100, -180, 180))
+#'
+#' # Estimate ols model with Conley standard errors using a 1000 km radius
+#' conleyreg(y ~ x1, data, 1000, lat = "lat", lon = "lon")
+#'
+#' # Estimate same model with an sf object as input
+#' conleyreg(y ~ x1, sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), 1000)
+#'
+#' # Estimate same model with an sf object of another projection as input
+#' conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), crs = "+proj=aeqd"), 1000)
+#'
+#' # Estimate logit model
+#' conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
+#'
+#' # Add variable
+#' data$x2 <- sample(1:5, 100, replace = T)
+#'
+#' # Estimate ols model with fixed effects
+#' conleyreg(y ~ x1 | x2, data, 1000, lat = "lat", lon = "lon")
+#'
+#' # Estimate probit model with fixed effects
+#' conleyreg(y ~ x1 | x2, data, 1000, "probit", lat = "lat", lon = "lon")
+#'
+#' # Add panel variables
+#' data$time <- rep(1:10, each = 10)
+#' data$unit <- rep(1:10, times = 10)
+#'
+#' # Estimate ols model using panel data
+#' conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
+#' }
+#'
 #'
 #' @importFrom foreach %do%
 #' @importFrom foreach %dopar%
@@ -47,7 +86,11 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   lag_cutoff = 0, intercept = T, verbose = T, ncores = NULL, dist_comp = c("precise", "fast")) {
 
   # Subset the data to variables that are used in the estimation
-  data <- data[, unique(c(all.vars(formula), unit, time, lat, lon))]
+  if(any(class(data) == "data.table")) {
+    data <- data[, eval(unique(c(all.vars(formula), unit, time, lat, lon))), with = F]
+  } else {
+    data <- data[, unique(c(all.vars(formula), unit, time, lat, lon))]
+  }
 
   # Check spatial attributes
   if(verbose) message("Checking spatial attributes")
@@ -56,8 +99,10 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     if(is.na(sf::st_crs(data))) stop("CRS not set")
 
     # Check if the CRS is either longlat or uses meters as units (otherwise convert units to meters)
-    if(!sf::st_is_longlat(data) & gsub("[+]units=", "", regmatches(raster::crs(data)@projargs, regexpr("[+]units=+\\S", raster::crs(data)@projargs))) != "m") {
-      data <- sf::st_transform(data, crs = gsub("[+]units=+\\S", "+units=m", raster::crs(data)@projargs))
+    if(!sf::st_is_longlat(data)) {
+      if(gsub("[+]units=", "", regmatches(raster::crs(data)@projargs, regexpr("[+]units=+\\S", raster::crs(data)@projargs))) != "m") {
+        data <- sf::st_transform(data, crs = gsub("[+]units=+\\S", "+units=m", raster::crs(data)@projargs))
+      }
       longlat <- F
     } else if(sf::st_is_longlat(data)) {
       longlat <- T
@@ -67,10 +112,17 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     if(is.null(lat) | is.null(lon)) stop("When data providing data in non-spatial format, you need to specify lat and lon")
 
     # Check if coordinates are non-missing and longitudes between -180 and 180 and latitudes are between -90 and 90
-    ymin <- min(data[, lat, drop = T])
-    ymax <- max(data[, lat, drop = T])
-    xmin <- min(data[, lon, drop = T])
-    xmax <- max(data[, lon, drop = T])
+    if(any(class(data) == "data.table")) {
+      ymin <- min(data[[lat]])
+      ymax <- max(data[[lat]])
+      xmin <- min(data[[lon]])
+      xmax <- max(data[[lon]])
+    } else {
+      ymin <- min(data[, lat, drop = T])
+      ymax <- max(data[, lat, drop = T])
+      xmin <- min(data[, lon, drop = T])
+      xmax <- max(data[, lon, drop = T])
+    }
     if(any(is.na(c(ymin, ymax, xmin, xmax)))) stop("Coordinates contain missing values")
     if(any(c(ymin, ymax) < -90) | any(c(ymin, ymax) > 90) | any(c(xmin, xmax) < -180) | any(c(xmin, xmax) > 180)) {
       stop("Coordinates exceed the [-180, 180] interval for longitudes or the [-90, 90] interval for latitudes")
@@ -90,7 +142,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   if(panel) {
     if(is.null(unit)) stop("Cross-sectional identifier, unit, not set")
     if(length(unique(data[[time]])) > 1) {
-      balanced <- isbalancedcpp(as.matrix(data.table::setorderv(data.table::data.table(data[, eval(c(time, unit)), with = F]), c(time, unit))))
+      balanced <- isbalancedcpp(as.matrix(data.table::setorderv(data.table::data.table(data)[, eval(c(time, unit)), with = F], c(time, unit))))
       if(balanced == 1) balanced <- T
       if(balanced == 0) balanced <- F
       if(balanced == 2) stop(paste0(unit), " does not uniquely identify cross-sectional units")
@@ -115,10 +167,10 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     data <- stats::na.omit(data)
   }
 
-  if(model != "ols" & panel) stop("Logit and probit currently exclusively applicable to cross-sectional data")
-
   # Set model type (default is ols)
   model <- match.arg(model)
+
+  if(model != "ols" & panel) stop("Logit and probit currently exclusively applicable to cross-sectional data")
 
   # Check if model uses fixed effects
   fe <- any(grepl("[|]", formula))
@@ -164,12 +216,17 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     # Extract independent variable names
     x_vars <- names(reg$coefficients)
     reg_vcov <- stats::vcov(reg)
-    reg <- data.table::data.table(reg$x, res = reg$residuals)
+    if(fe) {
+      reg <- data.table::data.table(reg$data[, eval(x_vars), with = F], res = (reg$data[, 1] - stats::fitted(reg)))
+      data.table::setnames(reg, (utils::tail(names(reg), 1)), "res")
+    } else {
+      reg <- data.table::data.table(reg$x, res = (reg$y - reg$fitted.values))
+    }
   }
   if(exists("sf_col")) {
     reg[, eval(sf_col) := data[, (sf_col)]]
   } else {
-    reg[, eval(c(lat, lon)) := data[, (c(lat, lon))]]
+    if(any(class(data) == "data.table")) reg[, eval(c(lat, lon)) := data[, (c(lat, lon)), with = F]] else reg[, eval(c(lat, lon)) := data[, (c(lat, lon))]]
   }
 
   # Removes data object as required data was copied to reg
