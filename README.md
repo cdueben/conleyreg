@@ -1,4 +1,4 @@
-This package estimates ols, logit, and probit models with Conley standard errors. It extends and modifies earlier implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring, (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley.
+This package estimates ols, logit, and probit models with Conley standard errors. It extends and modifies earlier implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring, (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley, of which all but the one by Timothy Conley are extensions and modifications of earlier implementations themselves.
 
 Let me know, if you come across any errors.
 
