@@ -9,7 +9,7 @@ Description: This package merges and extends multiple packages and other publish
 License: MIT
 Encoding: UTF-8
 LazyData: true
-Imports: base, stats, sf, raster, Rcpp, RcppArmadillo, data.table, lfe, bife, lmtest, foreach, parallel, doParallel, Rdpack
+Imports: base, stats, sf, raster, Rcpp, RcppArmadillo, data.table, lfe, lmtest, foreach, parallel, doParallel, Rdpack, fixest
 Suggests: s2
 LinkingTo: Rcpp, RcppArmadillo
 RdMacros: Rdpack

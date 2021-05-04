@@ -184,7 +184,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     reg <- lfe::felm(stats::formula(formula), data = data, keepCX = T)
   } else if(model %in% c("logit", "probit")) {
     if(fe) {
-      reg <- bife::bife(stats::formula(formula), data = data, model = model)
+      reg <- fixest::feglm(stats::formula(formula), data = data, family = stats::binomial(link = model))
     } else {
       reg <- stats::glm(stats::formula(formula), data = data, family = stats::binomial(link = model), x = T)
     }
@@ -204,7 +204,14 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
 
   # Extract results
   # Extract coefficients and degrees of freedom
-  outp <- reg[c("coefficients", "df.residual")]
+  if(model %in% c("logit", "probit") & fe) {
+    outp <- list()
+    # class(outp) <- c("lm", "glm")
+    outp$coefficients <- reg$coefficients
+    outp$df.residual <- fixest::fitstat(reg, "g")$g
+  } else {
+    outp <- reg[c("coefficients", "df.residual")]
+  }
   if(model == "ols") {
     # Extract independent variable names
     x_vars <- rownames(reg$coefficients)
@@ -215,11 +222,30 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   } else if(model %in% c("logit", "probit")) {
     # Extract independent variable names
     x_vars <- names(reg$coefficients)
-    reg_vcov <- stats::vcov(reg)
     if(fe) {
-      reg <- data.table::data.table(reg$data[, eval(x_vars), with = F], res = (reg$data[, 1] - stats::fitted(reg)))
+      reg_vcov <- reg$cov.unscaled
+      if(reg$nobs == reg$nobs_origin) {
+        if(any(class(data) == "data.table")) {
+          reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
+            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = F])), res = reg$residuals)
+        } else {
+          reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
+            data = data[, c(x_vars, reg$fixef_vars)]), res = reg$residuals)
+        }
+      } else {
+        if(any(class(data) == "data.table")) {
+          data <- data[-eval(reg$obsRemoved),]
+          reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
+            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = F])), res = reg$residuals)
+        } else {
+          data <- data[-reg$obsRemoved,]
+          reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
+            data = data[, c(x_vars, reg$fixef_vars)]), res = reg$residuals)
+        }
+      }
       data.table::setnames(reg, (utils::tail(names(reg), 1)), "res")
     } else {
+      reg_vcov <- stats::vcov(reg)
       reg <- data.table::data.table(reg$x, res = (reg$y - reg$fitted.values))
     }
   }
