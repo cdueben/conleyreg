@@ -1,8 +1,7 @@
 #include <iostream>
+#define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-
-#define ARMA_64BIT_WORD 1
 
 // Enable C++11 via this plugin (Rcpp 0.10.3 or later)
 // [[Rcpp::plugins(cpp11)]]
