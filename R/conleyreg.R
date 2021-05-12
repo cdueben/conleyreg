@@ -44,7 +44,8 @@
 #' conleyreg(y ~ x1, sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), 1000)
 #'
 #' # Estimate same model with an sf object of another projection as input
-#' conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), crs = "+proj=aeqd"), 1000)
+#' conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326),
+#'   crs = "+proj=aeqd"), 1000)
 #'
 #' # Estimate logit model
 #' conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
