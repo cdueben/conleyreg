@@ -23,6 +23,12 @@
 #' tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(T)} makes it rely on s2 which should be
 #' faster than the alternative choice of GEOS with \code{sf::sf_use_s2(F)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
 #' haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.
+#' @param sparse boolean specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect when
+#' \code{dist_comp = "fast"}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located outside the
+#' respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.
+#' @param batch boolean specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}). Defaults
+#' to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = T}. Batch insertion is faster than element-wise insertion, but
+#' requires more memory.
 #'
 #' @details This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
 #' (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
@@ -67,6 +73,7 @@
 #' conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 #' }
 #'
+#' \insertNoCite{*}{conleyreg}
 #'
 #' @importFrom foreach %do%
 #' @importFrom foreach %dopar%
@@ -75,7 +82,6 @@
 #' @importFrom Rcpp evalCpp
 #'
 #' @references
-#' \insertCite{*}{conleyreg}
 #' \insertAllCited{}
 #'
 #' @useDynLib conleyreg, .registration = T
@@ -84,7 +90,9 @@
 #'
 #' @export
 conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "probit"), unit = NULL, time = NULL, lat = NULL, lon = NULL, kernel = c("bartlett", "uniform"),
-  lag_cutoff = 0, intercept = T, verbose = T, ncores = NULL, dist_comp = c("precise", "fast")) {
+  lag_cutoff = 0, intercept = T, verbose = T, ncores = NULL, dist_comp = c("precise", "fast"), sparse = F, batch = F) {
+  # Convert estimation equation to formula, if it was entered as a character string
+  formula <- stats::formula(formula)
 
   # Subset the data to variables that are used in the estimation
   if(any(class(data) == "data.table")) {
@@ -133,6 +141,13 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     stop(paste0("Data of class ", class(data), " is not a valid input"))
   }
 
+  # Set distance computation type (precise is default)
+  dist_comp <- match.arg(dist_comp)
+
+  # Check if non-longlat data is combined with dist_comp = "fast"
+  if(!longlat & dist_comp == "fast") stop("Fast distance computations are only available for longlat data. Convert the data to longlat ",
+    "(sf::st_transform(data, crs = 4326)) or use precise distance computations.)")
+
   # Check if formula omits intercept
   if(any(grepl("(^|[+]|-|\\s)(0|1)([+]|-|\\s|$)", formula))) stop("Omit the intercept via the intercept argument, not by adding + 0 or - 1 to the formula")
 
@@ -179,15 +194,24 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   # Adjust intercept
   if(!fe & !intercept) formula <- stats::update(formula, ~ . - 1)
 
+  # Extract crs and name of geometry column, if data is sf
+  if(any(class(data) == "sf")) {
+    crs <- sf::st_crs(data)
+    sf_col <- attributes(data)$sf_column
+    # Drop geometry column of sf object as it may interfere with estimation functions, especially in case of fixest package
+    data_sf <- data[, sf_col]
+    data <- sf::st_drop_geometry(data)
+  }
+
   # Estimate model
   if(verbose) message("Estimating model")
   if(model == "ols") {
-    reg <- lfe::felm(stats::formula(formula), data = data, keepCX = T)
+    reg <- lfe::felm(formula, data = data, keepCX = T)
   } else if(model %in% c("logit", "probit")) {
     if(fe) {
-      reg <- fixest::feglm(stats::formula(formula), data = data, family = stats::binomial(link = model))
+      reg <- fixest::feglm(formula, data = data, family = stats::binomial(link = model))
     } else {
-      reg <- stats::glm(stats::formula(formula), data = data, family = stats::binomial(link = model), x = T)
+      reg <- stats::glm(formula, data = data, family = stats::binomial(link = model), x = T)
     }
   }
   # Check if variables are dropped which impedes standard error correction
@@ -197,17 +221,10 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       "(y ~ x1 + x2 + x3).")
   }
 
-  # Extract crs and name of geometry column, if data is sf
-  if(any(class(data) == "sf")) {
-    crs <- sf::st_crs(data)
-    sf_col <- attributes(data)$sf_column
-  }
-
   # Extract results
   # Extract coefficients and degrees of freedom
   if(model %in% c("logit", "probit") & fe) {
     outp <- list()
-    # class(outp) <- c("lm", "glm")
     outp$coefficients <- reg$coefficients
     outp$df.residual <- fixest::fitstat(reg, "g")$g
   } else {
@@ -251,7 +268,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     }
   }
   if(exists("sf_col")) {
-    reg[, eval(sf_col) := data[, (sf_col)]]
+    reg[, eval(sf_col) := data_sf]
   } else {
     if(any(class(data) == "data.table")) reg[, eval(c(lat, lon)) := data[, (c(lat, lon)), with = F]] else reg[, eval(c(lat, lon)) := data[, (c(lat, lon))]]
   }
@@ -262,9 +279,6 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   # Set kernel (default is bartlett)
   kernel <- match.arg(kernel)
 
-  # Set distance computation type (precise is default)
-  dist_comp <- match.arg(dist_comp)
-
   # Estimate distance matrix
   if(verbose) message(paste0("Estimating distance matri", ifelse(panel, ifelse(balanced, "x", "ces"), "x"), " and addressing spatial correlation"))
 
@@ -273,6 +287,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
 
   # Obtain number of independent variables
   n_vars <- length(x_vars)
+
+  # Set identifier of cross-sectional, fast ols applications
+  cs_ols_f <- (model == "ols" & !panel & dist_comp == "fast")
 
   if(panel) {
     # Panel application
@@ -283,9 +300,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       pl <- NROW(reg) / length(unique(reg[[time]]))
       # Distance matrices are identical across time periods in a balanced panel
       if(is.list(coords)) {
-        distances <- dist_fun(reg[1:eval(pl), eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+        distances <- dist_fun(reg[1:eval(pl), eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       } else {
-        distances <- dist_fun(reg[1:eval(pl), eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+        distances <- dist_fun(reg[1:eval(pl), eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       }
       if(is.null(ncores)) ncores <- parallel::detectCores()
       if(!is.numeric(ncores)) stop("ncores must be either NULL or numeric")
@@ -295,14 +312,48 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         doParallel::registerDoParallel(cl)
         XeeX <- foreach::foreach(tp = seq(1, NROW(reg), by = pl)) %dopar% {
           reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = F]
-          return(XeeXhC(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars))
+          if(dist_comp == "fast") {
+            if(kernel == "bartlett") {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            } else {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_u(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            }
+          } else {
+            XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+          }
+          return(XeeX_tp)
         }
         parallel::stopCluster(cl)
       } else {
         # Non-parallel computation
         XeeX <- foreach::foreach(tp = seq(1, NROW(reg), by = pl)) %do% {
           reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = F]
-          return(XeeXhC(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars))
+          if(dist_comp == "fast") {
+            if(kernel == "bartlett") {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            } else {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_u(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            }
+          } else {
+            XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+          }
+          return(XeeX_tp)
         }
       }
       # Remove distances object
@@ -319,11 +370,28 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         XeeX <- foreach::foreach(tp = unique(reg[[time]])) %dopar% {
           reg_tp <- reg[.(tp), -eval(unit), with = F, on = eval(time)]
           if(is.list(coords)) {
-            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           } else {
-            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           }
-          return(XeeXhC(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars))
+          if(dist_comp == "fast") {
+            if(kernel == "bartlett") {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            } else {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_u(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            }
+          } else {
+            XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+          }
+          return(XeeX_tp)
         }
         parallel::stopCluster(cl)
       } else {
@@ -331,11 +399,28 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         XeeX <- foreach::foreach(tp = unique(reg[[time]])) %do% {
           reg_tp <- reg[.(tp), -eval(unit), with = F, on = eval(time)]
           if(is.list(coords)) {
-            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           } else {
-            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           }
-          return(XeeXhC(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars))
+          if(dist_comp == "fast") {
+            if(kernel == "bartlett") {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            } else {
+              if(sparse) {
+                XeeX_tp <- XeeXhCsp_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              } else {
+                XeeX_tp <- XeeXhC_u(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+              }
+            }
+          } else {
+            XeeX_tp <- XeeXhC_b(distances, as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[["res"]], NROW(reg_tp), n_vars)
+          }
+          return(XeeX_tp)
         }
       }
     }
@@ -343,16 +428,26 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   } else {
     # Cross-sectional application
     if(is.list(coords)) {
-      XeeX <- dist_fun(reg[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+      if(cs_ols_f | (model %in% c("logit", "probit") & dist_comp == "fast")) {
+        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
+          with = FALSE]), reg[["res"]], n_vars)
+      } else {
+        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+      }
     } else {
-      XeeX <- dist_fun(reg[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat)
+      if(cs_ols_f | (model %in% c("logit", "probit") & dist_comp == "fast")) {
+        XeeX <- dist_fun(reg[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
+          with = FALSE]), reg[["res"]], n_vars)
+      } else {
+        XeeX <- dist_fun(reg[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+      }
     }
     if(model == "ols") {
-      # Adressing spatial correlation in case of ols
-      XeeX <- XeeXhC(XeeX, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[["res"]], NROW(reg), n_vars)
+      # Adressing spatial correlation in case of ols with precise distances
+      if(!cs_ols_f) XeeX <- XeeXhC_b(XeeX, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[["res"]], NROW(reg), n_vars)
     } else {
       # Sandwich filling in case of logit and probit
-      XeeX <- lp_filling(XeeX, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[["res"]], NROW(reg), n_vars)
+      if(dist_comp == "precise") XeeX <- lp_filling(XeeX, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[["res"]], NROW(reg), n_vars)
     }
   }
 
@@ -394,7 +489,6 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       message("Not addressing serial correlation because lag_cutoff is zero")
     }
   }
-
   # Compute variance-covariance matrix
   if(model == "ols") {
     V_spatial_HAC <- as.matrix(reg[, eval(x_vars), with = F])
@@ -405,12 +499,11 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   } else {
     V_spatial_HAC <- lp_vcov(reg_vcov, XeeX, n_vars)
   }
-
   return(lmtest::coeftest(outp, vcov. = V_spatial_HAC))
 }
 
 # Function computing and adjusting distances
-dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat) {
+dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, X = NULL, res = NULL, n_vars = NULL) {
   # Compute distances via sf
   if(dist_comp == "precise" | !longlat) {
     # Convert data table to sf format
@@ -424,8 +517,16 @@ dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat)
     # Compute distance matrix
     distances <- sf::st_distance(distances) / 1000
     units(distances) <- NULL
+    # Adjust distances according to specified cutoff
+    if(kernel == "bartlett") {
+      # The bartlett kernel sets distances above the cutoff to zero and those below to a value between zero and one
+      distances <- (1 - distances / dist_cutoff) * (distances <= dist_cutoff)
+    } else {
+      # The uniform kernel sets distances above the cutoff to zero and those below to one (multiplying by one converts the boolean matrix to numeric)
+      distances <- (distances <= dist_cutoff) * 1
+    }
   } else {
-    # Compute distances via haversine distance function
+    # Compute distances via haversine distance function and adjust distances according to specified cutoff
     if(is.list(coords)) {
       # Coordinates in sf format
       distances <- sf::st_coordinates(sf::st_as_sf(distances, crs = coords[[2]], sf_column_name = coords[[1]]))
@@ -434,16 +535,82 @@ dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat)
       distances <- distances[, eval(coords), with = F]
     }
     # Compute distance matrix
-    distances <- haversine_mat(as.matrix(distances), NROW(distances))
-  }
-
-  # Adjust distances according to specified cutoff
-  if(kernel == "bartlett") {
-    # The bartlett kernel sets distances above the cutoff to zero and those below to a value between zero and one
-    distances <- (1 - distances / dist_cutoff) * (distances <= dist_cutoff)
-  } else {
-    # The uniform kernel sets distances above the cutoff to zero and those below to one (multiplying by one converts the boolean matrix to numeric)
-    distances <- (distances <= dist_cutoff) * 1
+    if(cs_ols_f) {
+      # Cross-sectional ols case with haversine distances
+      if(kernel == "bartlett") {
+        # The bartlett kernel sets distances above the cutoff to zero and those below to a value between zero and one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_XeeXhC_b_bi(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+          } else {
+            distances <- haversine_spmat_XeeXhC_b(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+          }
+        } else {
+          distances <- haversine_mat_XeeXhC_b(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+        }
+      } else {
+        # The uniform kernel sets distances above the cutoff to zero and those below to one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_XeeXhC_u_bi(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+          } else {
+            distances <- haversine_spmat_XeeXhC_u(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+          }
+        } else {
+          distances <- haversine_mat_XeeXhC_u(as.matrix(distances), NROW(distances), dist_cutoff, X, res, n_vars)
+        }
+      }
+    } else if(model %in% c("logit", "probit") & dist_comp == "fast") {
+      # Logit and probit case with haversine distances
+      if(kernel == "bartlett") {
+        # The bartlett kernel sets distances above the cutoff to zero and those below to a value between zero and one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_lp_b_bi(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+          } else {
+            distances <- haversine_spmat_lp_b(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+          }
+        } else {
+          distances <- haversine_mat_lp_b(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+        }
+      } else {
+        # The uniform kernel sets distances above the cutoff to zero and those below to one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_lp_u_bi(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+          } else {
+            distances <- haversine_spmat_lp_u(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+          }
+        } else {
+          distances <- haversine_mat_lp_u(as.matrix(distances), X, res, NROW(distances), n_vars, dist_cutoff)
+        }
+      }
+    } else {
+      # Haversine distances in panel
+      if(kernel == "bartlett") {
+        # The bartlett kernel sets distances above the cutoff to zero and those below to a value between zero and one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_b_bi(as.matrix(distances), NROW(distances), dist_cutoff)
+          } else {
+            distances <- haversine_spmat_b(as.matrix(distances), NROW(distances), dist_cutoff)
+          }
+        } else {
+          distances <- haversine_mat_b(as.matrix(distances), NROW(distances), dist_cutoff)
+        }
+      } else {
+        # The uniform kernel sets distances above the cutoff to zero and those below to one
+        if(sparse) {
+          if(batch) {
+            distances <- haversine_spmat_u_bi(as.matrix(distances), NROW(distances), dist_cutoff)
+          } else {
+            distances <- haversine_spmat_u(as.matrix(distances), NROW(distances), dist_cutoff)
+          }
+        } else {
+          distances <- haversine_mat_u(as.matrix(distances), NROW(distances), dist_cutoff)
+        }
+      }
+    }
   }
   return(distances)
 }

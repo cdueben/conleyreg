@@ -18,7 +18,9 @@ conleyreg(
   intercept = T,
   verbose = T,
   ncores = NULL,
-  dist_comp = c("precise", "fast")
+  dist_comp = c("precise", "fast"),
+  sparse = F,
+  batch = F
 )
 }
 \arguments{
@@ -56,6 +58,14 @@ location over time.}
 tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(T)} makes it rely on s2 which should be
 faster than the alternative choice of GEOS with \code{sf::sf_use_s2(F)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
 haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.}
+
+\item{sparse}{boolean specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect when
+\code{dist_comp = "fast"}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located outside the
+respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.}
+
+\item{batch}{boolean specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}). Defaults
+to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = T}. Batch insertion is faster than element-wise insertion, but
+requires more memory.}
 }
 \value{
 Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors.
@@ -105,9 +115,9 @@ data$unit <- rep(1:10, times = 10)
 conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 }
 
+\insertNoCite{*}{conleyreg}
 
 }
 \references{
-\insertCite{*}{conleyreg}
 \insertAllCited{}
 }

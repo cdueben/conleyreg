@@ -1,7 +1,7 @@
 Package: conleyreg
 Type: Package
 Title: Estimations using Conley standard errors
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Christian", "Düben", email = "christian.dueben@uni-hamburg.de", role = c("aut", "cre")), person("Richard", "Bluhm", role = "cph"), 
   person("Luis", "Calderon", role = "cph"), person("Darin", "Christensen", role = "cph"), person("Timothy", "Conley", role = "cph"), person("Thiemo", "Fetzer", role = "cph"), 
   person("Leander", "Heldring", role = "cph"))
@@ -9,9 +9,10 @@ Description: This package merges and extends multiple packages and other publish
 License: MIT
 Encoding: UTF-8
 LazyData: true
-Imports: base, stats, sf, raster, Rcpp, RcppArmadillo, data.table, lfe, lmtest, foreach, parallel, doParallel, Rdpack, fixest
-Suggests: s2
+Imports: base, stats, sf, raster, Rcpp, RcppArmadillo, data.table, lfe, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix
+Suggests: rmarkdown, knitr, s2
 LinkingTo: Rcpp, RcppArmadillo
 RdMacros: Rdpack
 SystemRequirements: GNU make
 RoxygenNote: 7.1.1
+VignetteBuilder: knitr

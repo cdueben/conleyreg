@@ -5,16 +5,88 @@ isbalancedcpp <- function(M) {
     .Call('_conleyreg_isbalancedcpp', PACKAGE = 'conleyreg', M)
 }
 
-haversine_mat <- function(coords, n_obs) {
-    .Call('_conleyreg_haversine_mat', PACKAGE = 'conleyreg', coords, n_obs)
+haversine_mat_b <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_mat_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
 }
 
-XeeXhC <- function(distances, X, e, n_obs_t, n_vars) {
-    .Call('_conleyreg_XeeXhC', PACKAGE = 'conleyreg', distances, X, e, n_obs_t, n_vars)
+haversine_spmat_b <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
+}
+
+haversine_spmat_u <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_u', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
+}
+
+haversine_spmat_b_bi <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_b_bi', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
+}
+
+haversine_spmat_u_bi <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_u_bi', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
+}
+
+XeeXhC_b <- function(distances, X, e, n_obs_t, n_vars) {
+    .Call('_conleyreg_XeeXhC_b', PACKAGE = 'conleyreg', distances, X, e, n_obs_t, n_vars)
+}
+
+XeeXhC_u <- function(distances, X, e, n_obs_t, n_vars) {
+    .Call('_conleyreg_XeeXhC_u', PACKAGE = 'conleyreg', distances, X, e, n_obs_t, n_vars)
+}
+
+XeeXhCsp_b <- function(distances, X, e, n_obs_t, n_vars) {
+    .Call('_conleyreg_XeeXhCsp_b', PACKAGE = 'conleyreg', distances, X, e, n_obs_t, n_vars)
+}
+
+haversine_mat_XeeXhC_b <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_mat_XeeXhC_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
+}
+
+haversine_mat_XeeXhC_u <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_mat_XeeXhC_u', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
+}
+
+haversine_spmat_XeeXhC_b <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_spmat_XeeXhC_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
+}
+
+haversine_spmat_XeeXhC_u <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_spmat_XeeXhC_u', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
+}
+
+haversine_spmat_XeeXhC_b_bi <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_spmat_XeeXhC_b_bi', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
+}
+
+haversine_spmat_XeeXhC_u_bi <- function(coords, n_obs, dist_cutoff, X, e, n_vars) {
+    .Call('_conleyreg_haversine_spmat_XeeXhC_u_bi', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff, X, e, n_vars)
 }
 
 lp_filling <- function(distances, X, e, n_obs_t, n_vars) {
     .Call('_conleyreg_lp_filling', PACKAGE = 'conleyreg', distances, X, e, n_obs_t, n_vars)
+}
+
+haversine_mat_lp_b <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_mat_lp_b', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
+}
+
+haversine_mat_lp_u <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_mat_lp_u', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
+}
+
+haversine_spmat_lp_b <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_lp_b', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
+}
+
+haversine_spmat_lp_u <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_lp_u', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
+}
+
+haversine_spmat_lp_b_bi <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_lp_b_bi', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
+}
+
+haversine_spmat_lp_u_bi <- function(coords, X, e, n_obs, n_vars, dist_cutoff) {
+    .Call('_conleyreg_haversine_spmat_lp_u_bi', PACKAGE = 'conleyreg', coords, X, e, n_obs, n_vars, dist_cutoff)
 }
 
 time_dist <- function(times, lag_cutoff, X, res, n_obs_u, n_vars) {
