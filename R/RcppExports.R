@@ -9,6 +9,10 @@ haversine_mat_b <- function(coords, n_obs, dist_cutoff) {
     .Call('_conleyreg_haversine_mat_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
 }
 
+haversine_mat_u <- function(coords, n_obs, dist_cutoff) {
+    .Call('_conleyreg_haversine_mat_u', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
+}
+
 haversine_spmat_b <- function(coords, n_obs, dist_cutoff) {
     .Call('_conleyreg_haversine_spmat_b', PACKAGE = 'conleyreg', coords, n_obs, dist_cutoff)
 }

@@ -30,6 +30,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// haversine_mat_u
+arma::Mat<short> haversine_mat_u(arma::mat coords, unsigned int n_obs, double dist_cutoff);
+RcppExport SEXP _conleyreg_haversine_mat_u(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(haversine_mat_u(coords, n_obs, dist_cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
 // haversine_spmat_b
 arma::sp_mat haversine_spmat_b(arma::mat coords, unsigned int n_obs, double dist_cutoff);
 RcppExport SEXP _conleyreg_haversine_spmat_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
@@ -367,6 +380,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_conleyreg_isbalancedcpp", (DL_FUNC) &_conleyreg_isbalancedcpp, 1},
     {"_conleyreg_haversine_mat_b", (DL_FUNC) &_conleyreg_haversine_mat_b, 3},
+    {"_conleyreg_haversine_mat_u", (DL_FUNC) &_conleyreg_haversine_mat_u, 3},
     {"_conleyreg_haversine_spmat_b", (DL_FUNC) &_conleyreg_haversine_spmat_b, 3},
     {"_conleyreg_haversine_spmat_u", (DL_FUNC) &_conleyreg_haversine_spmat_u, 3},
     {"_conleyreg_haversine_spmat_b_bi", (DL_FUNC) &_conleyreg_haversine_spmat_b_bi, 3},

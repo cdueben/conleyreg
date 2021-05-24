@@ -94,6 +94,7 @@ arma::mat haversine_mat_b(arma::mat coords, unsigned int n_obs, double dist_cuto
 }
 
 // 3b Function computing dense matrix of haversine distances using a uniform kernel
+// [[Rcpp::export]]
 arma::Mat<short> haversine_mat_u(arma::mat coords, unsigned int n_obs, double dist_cutoff) {
   arma::Mat<short> distances(n_obs, n_obs, fill::zeros);
   coords *= 0.01745329252;
