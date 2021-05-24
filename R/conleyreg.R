@@ -33,7 +33,10 @@
 #' @details This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
 #' (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
 #'
-#' @return Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors.
+#' @return Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors. \insertNoCite{*}{conleyreg}
+#'
+#' @references
+#' \insertAllCited{}
 #'
 #' @examples
 #' \dontrun{
@@ -73,16 +76,11 @@
 #' conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 #' }
 #'
-#' \insertNoCite{*}{conleyreg}
-#'
 #' @importFrom foreach %do%
 #' @importFrom foreach %dopar%
 #' @importFrom data.table :=
 #' @importFrom Rdpack reprompt
 #' @importFrom Rcpp evalCpp
-#'
-#' @references
-#' \insertAllCited{}
 #'
 #' @useDynLib conleyreg, .registration = T
 #'

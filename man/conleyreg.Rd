@@ -68,7 +68,7 @@ to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"}
 requires more memory.}
 }
 \value{
-Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors.
+Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors. \insertNoCite{*}{conleyreg}
 }
 \description{
 This function estimates ols, logit, and probit models with Conley standard errors.
@@ -114,8 +114,6 @@ data$unit <- rep(1:10, times = 10)
 # Estimate ols model using panel data
 conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 }
-
-\insertNoCite{*}{conleyreg}
 
 }
 \references{
