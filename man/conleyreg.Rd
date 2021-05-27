@@ -15,12 +15,12 @@ conleyreg(
   lon = NULL,
   kernel = c("bartlett", "uniform"),
   lag_cutoff = 0,
-  intercept = T,
-  verbose = T,
+  intercept = TRUE,
+  verbose = TRUE,
   ncores = NULL,
   dist_comp = c("precise", "fast"),
-  sparse = F,
-  batch = F
+  sparse = FALSE,
+  batch = FALSE
 )
 }
 \arguments{
@@ -55,8 +55,8 @@ location over time.}
 \item{ncores}{the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs. Does not affect cross-sectional applications.}
 
 \item{dist_comp}{choice between \code{precise} (default) and \code{fast} distance computations when data is longlat. Even when choosing \code{precise}, you can still
-tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(T)} makes it rely on s2 which should be
-faster than the alternative choice of GEOS with \code{sf::sf_use_s2(F)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
+tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(TRUE)} makes it rely on s2 which should be
+faster than the alternative choice of GEOS with \code{sf::sf_use_s2(FALSE)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
 haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.}
 
 \item{sparse}{boolean specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect when
@@ -64,7 +64,7 @@ haversine distances. Non-longlat data is not affected by this parameter and alwa
 respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.}
 
 \item{batch}{boolean specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}). Defaults
-to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = T}. Batch insertion is faster than element-wise insertion, but
+to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = TRUE}. Batch insertion is faster than element-wise insertion, but
 requires more memory.}
 }
 \value{
@@ -78,9 +78,8 @@ This code is an extension and modification of earlier Conley standard error impl
 (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
 }
 \examples{
-\dontrun{
 # Generate cross-sectional example data
-data <- data.frame(y = sample(c(0, 1), 100, replace = T),
+data <- data.frame(y = sample(c(0, 1), 100, replace = TRUE),
   x1 = stats::runif(100, -50, 50),
   lat = runif(100, -90, 90),
   lon = runif(100, -180, 180))
@@ -99,7 +98,7 @@ conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), 
 conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
 
 # Add variable
-data$x2 <- sample(1:5, 100, replace = T)
+data$x2 <- sample(1:5, 100, replace = TRUE)
 
 # Estimate ols model with fixed effects
 conleyreg(y ~ x1 | x2, data, 1000, lat = "lat", lon = "lon")
@@ -110,7 +109,7 @@ conleyreg(y ~ x1 | x2, data, 1000, "probit", lat = "lat", lon = "lon")
 # Add panel variables
 data$time <- rep(1:10, each = 10)
 data$unit <- rep(1:10, times = 10)
-
+\donttest{
 # Estimate ols model using panel data
 conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 }

@@ -20,14 +20,14 @@
 #' @param verbose boolean specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.
 #' @param ncores the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs. Does not affect cross-sectional applications.
 #' @param dist_comp choice between \code{precise} (default) and \code{fast} distance computations when data is longlat. Even when choosing \code{precise}, you can still
-#' tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(T)} makes it rely on s2 which should be
-#' faster than the alternative choice of GEOS with \code{sf::sf_use_s2(F)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
+#' tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(TRUE)} makes it rely on s2 which should be
+#' faster than the alternative choice of GEOS with \code{sf::sf_use_s2(FALSE)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
 #' haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.
 #' @param sparse boolean specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect when
 #' \code{dist_comp = "fast"}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located outside the
 #' respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.
 #' @param batch boolean specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}). Defaults
-#' to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = T}. Batch insertion is faster than element-wise insertion, but
+#' to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = TRUE}. Batch insertion is faster than element-wise insertion, but
 #' requires more memory.
 #'
 #' @details This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
@@ -39,9 +39,8 @@
 #' \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
 #' # Generate cross-sectional example data
-#' data <- data.frame(y = sample(c(0, 1), 100, replace = T),
+#' data <- data.frame(y = sample(c(0, 1), 100, replace = TRUE),
 #'   x1 = stats::runif(100, -50, 50),
 #'   lat = runif(100, -90, 90),
 #'   lon = runif(100, -180, 180))
@@ -60,7 +59,7 @@
 #' conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
 #'
 #' # Add variable
-#' data$x2 <- sample(1:5, 100, replace = T)
+#' data$x2 <- sample(1:5, 100, replace = TRUE)
 #'
 #' # Estimate ols model with fixed effects
 #' conleyreg(y ~ x1 | x2, data, 1000, lat = "lat", lon = "lon")
@@ -71,7 +70,7 @@
 #' # Add panel variables
 #' data$time <- rep(1:10, each = 10)
 #' data$unit <- rep(1:10, times = 10)
-#'
+#' \donttest{
 #' # Estimate ols model using panel data
 #' conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
 #' }
@@ -82,19 +81,19 @@
 #' @importFrom Rdpack reprompt
 #' @importFrom Rcpp evalCpp
 #'
-#' @useDynLib conleyreg, .registration = T
+#' @useDynLib conleyreg, .registration = TRUE
 #'
 #' @exportPattern "ˆ[[:alpha:]]+"
 #'
 #' @export
 conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "probit"), unit = NULL, time = NULL, lat = NULL, lon = NULL, kernel = c("bartlett", "uniform"),
-  lag_cutoff = 0, intercept = T, verbose = T, ncores = NULL, dist_comp = c("precise", "fast"), sparse = F, batch = F) {
+  lag_cutoff = 0, intercept = TRUE, verbose = TRUE, ncores = NULL, dist_comp = c("precise", "fast"), sparse = FALSE, batch = FALSE) {
   # Convert estimation equation to formula, if it was entered as a character string
   formula <- stats::formula(formula)
 
   # Subset the data to variables that are used in the estimation
   if(any(class(data) == "data.table")) {
-    data <- data[, eval(unique(c(all.vars(formula), unit, time, lat, lon))), with = F]
+    data <- data[, eval(unique(c(all.vars(formula), unit, time, lat, lon))), with = FALSE]
   } else {
     data <- data[, unique(c(all.vars(formula), unit, time, lat, lon))]
   }
@@ -110,9 +109,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       if(gsub("[+]units=", "", regmatches(raster::crs(data)@projargs, regexpr("[+]units=+\\S", raster::crs(data)@projargs))) != "m") {
         data <- sf::st_transform(data, crs = gsub("[+]units=+\\S", "+units=m", raster::crs(data)@projargs))
       }
-      longlat <- F
+      longlat <- FALSE
     } else if(sf::st_is_longlat(data)) {
-      longlat <- T
+      longlat <- TRUE
     }
   } else if(any(class(data) == "data.frame")) {
     # Check if lat and lon are set
@@ -125,16 +124,16 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       xmin <- min(data[[lon]])
       xmax <- max(data[[lon]])
     } else {
-      ymin <- min(data[, lat, drop = T])
-      ymax <- max(data[, lat, drop = T])
-      xmin <- min(data[, lon, drop = T])
-      xmax <- max(data[, lon, drop = T])
+      ymin <- min(data[, lat, drop = TRUE])
+      ymax <- max(data[, lat, drop = TRUE])
+      xmin <- min(data[, lon, drop = TRUE])
+      xmax <- max(data[, lon, drop = TRUE])
     }
     if(any(is.na(c(ymin, ymax, xmin, xmax)))) stop("Coordinates contain missing values")
     if(any(c(ymin, ymax) < -90) | any(c(ymin, ymax) > 90) | any(c(xmin, xmax) < -180) | any(c(xmin, xmax) > 180)) {
       stop("Coordinates exceed the [-180, 180] interval for longitudes or the [-90, 90] interval for latitudes")
     }
-    longlat <- T
+    longlat <- TRUE
   } else {
     stop(paste0("Data of class ", class(data), " is not a valid input"))
   }
@@ -156,9 +155,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   if(panel) {
     if(is.null(unit)) stop("Cross-sectional identifier, unit, not set")
     if(length(unique(data[[time]])) > 1) {
-      balanced <- isbalancedcpp(as.matrix(data.table::setorderv(data.table::data.table(data)[, eval(c(time, unit)), with = F], c(time, unit))))
-      if(balanced == 1) balanced <- T
-      if(balanced == 0) balanced <- F
+      balanced <- isbalancedcpp(as.matrix(data.table::setorderv(data.table::data.table(data)[, eval(c(time, unit)), with = FALSE], c(time, unit))))
+      if(balanced == 1) balanced <- TRUE
+      if(balanced == 0) balanced <- FALSE
       if(balanced == 2) stop(paste0(unit), " does not uniquely identify cross-sectional units")
       if(!balanced & verbose) message("Unbalanced panel identified")
       # Obtain number of observations
@@ -166,12 +165,12 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       # Drop missing values
       data <- stats::na.omit(data)
       if(NROW(data) < n_obs & balanced) {
-        balanced <- F
+        balanced <- FALSE
         warning("Panel treated as unbalanced because of missing values")
       }
       if(balanced & verbose) message("Balanced panel identified")
     } else {
-      panel <- F
+      panel <- FALSE
       warning("Number of time periods: 1. Treating data as cross-sectional.")
       # Drop missing values in cross-sectional case
       data <- stats::na.omit(data)
@@ -204,12 +203,12 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   # Estimate model
   if(verbose) message("Estimating model")
   if(model == "ols") {
-    reg <- lfe::felm(formula, data = data, keepCX = T)
+    reg <- lfe::felm(formula, data = data, keepCX = TRUE)
   } else if(model %in% c("logit", "probit")) {
     if(fe) {
       reg <- fixest::feglm(formula, data = data, family = stats::binomial(link = model))
     } else {
-      reg <- stats::glm(formula, data = data, family = stats::binomial(link = model), x = T)
+      reg <- stats::glm(formula, data = data, family = stats::binomial(link = model), x = TRUE)
     }
   }
   # Check if variables are dropped which impedes standard error correction
@@ -243,7 +242,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       if(reg$nobs == reg$nobs_origin) {
         if(any(class(data) == "data.table")) {
           reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
-            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = F])), res = reg$residuals)
+            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = FALSE])), res = reg$residuals)
         } else {
           reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
             data = data[, c(x_vars, reg$fixef_vars)]), res = reg$residuals)
@@ -252,7 +251,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         if(any(class(data) == "data.table")) {
           data <- data[-eval(reg$obsRemoved),]
           reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
-            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = F])), res = reg$residuals)
+            data = data.table::setDF(data[, eval(c(x_vars, reg$fixef_vars)), with = FALSE])), res = reg$residuals)
         } else {
           data <- data[-reg$obsRemoved,]
           reg <- data.table::data.table(fixest::demean(formula(paste0(paste0(x_vars, collapse = " + "), " ~ ", paste0(reg$fixef_vars, collapse = " + "))),
@@ -268,7 +267,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   if(exists("sf_col")) {
     reg[, eval(sf_col) := data_sf]
   } else {
-    if(any(class(data) == "data.table")) reg[, eval(c(lat, lon)) := data[, (c(lat, lon)), with = F]] else reg[, eval(c(lat, lon)) := data[, (c(lat, lon))]]
+    if(any(class(data) == "data.table")) reg[, eval(c(lat, lon)) := data[, (c(lat, lon)), with = FALSE]] else reg[, eval(c(lat, lon)) := data[, (c(lat, lon))]]
   }
 
   # Removes data object as required data was copied to reg
@@ -298,9 +297,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       pl <- NROW(reg) / length(unique(reg[[time]]))
       # Distance matrices are identical across time periods in a balanced panel
       if(is.list(coords)) {
-        distances <- dist_fun(reg[1:eval(pl), eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+        distances <- dist_fun(reg[1:eval(pl), eval(coords[[1]]), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       } else {
-        distances <- dist_fun(reg[1:eval(pl), eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+        distances <- dist_fun(reg[1:eval(pl), eval(coords), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       }
       if(is.null(ncores)) ncores <- parallel::detectCores()
       if(!is.numeric(ncores)) stop("ncores must be either NULL or numeric")
@@ -309,7 +308,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         cl <- parallel::makePSOCKcluster(ncores)
         doParallel::registerDoParallel(cl)
         XeeX <- foreach::foreach(tp = seq(1, NROW(reg), by = pl)) %dopar% {
-          reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = F]
+          reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = FALSE]
           if(dist_comp == "fast") {
             if(kernel == "bartlett") {
               if(sparse) {
@@ -333,7 +332,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       } else {
         # Non-parallel computation
         XeeX <- foreach::foreach(tp = seq(1, NROW(reg), by = pl)) %do% {
-          reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = F]
+          reg_tp <- reg[eval(tp):eval((tp + pl - 1)), -eval(unit), with = FALSE]
           if(dist_comp == "fast") {
             if(kernel == "bartlett") {
               if(sparse) {
@@ -366,11 +365,11 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         cl <- parallel::makePSOCKcluster(ncores)
         doParallel::registerDoParallel(cl)
         XeeX <- foreach::foreach(tp = unique(reg[[time]])) %dopar% {
-          reg_tp <- reg[.(tp), -eval(unit), with = F, on = eval(time)]
+          reg_tp <- reg[.(tp), -eval(unit), with = FALSE, on = eval(time)]
           if(is.list(coords)) {
-            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           } else {
-            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+            distances <- dist_fun(reg_tp[, eval(coords), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           }
           if(dist_comp == "fast") {
             if(kernel == "bartlett") {
@@ -395,11 +394,11 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       } else {
         # Non-parallel computation
         XeeX <- foreach::foreach(tp = unique(reg[[time]])) %do% {
-          reg_tp <- reg[.(tp), -eval(unit), with = F, on = eval(time)]
+          reg_tp <- reg[.(tp), -eval(unit), with = FALSE, on = eval(time)]
           if(is.list(coords)) {
-            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+            distances <- dist_fun(reg_tp[, eval(coords[[1]]), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           } else {
-            distances <- dist_fun(reg_tp[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+            distances <- dist_fun(reg_tp[, eval(coords), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
           }
           if(dist_comp == "fast") {
             if(kernel == "bartlett") {
@@ -427,17 +426,17 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     # Cross-sectional application
     if(is.list(coords)) {
       if(cs_ols_f | (model %in% c("logit", "probit") & dist_comp == "fast")) {
-        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
+        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
           with = FALSE]), reg[["res"]], n_vars)
       } else {
-        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+        XeeX <- dist_fun(reg[, eval(coords[[1]]), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       }
     } else {
       if(cs_ols_f | (model %in% c("logit", "probit") & dist_comp == "fast")) {
-        XeeX <- dist_fun(reg[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
+        XeeX <- dist_fun(reg[, eval(coords), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, as.matrix(reg[, eval(x_vars),
           with = FALSE]), reg[["res"]], n_vars)
       } else {
-        XeeX <- dist_fun(reg[, eval(coords), with = F], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
+        XeeX <- dist_fun(reg[, eval(coords), with = FALSE], coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model)
       }
     }
     if(model == "ols") {
@@ -461,7 +460,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       # Set unit variable as key (speeds up subsetting)
       data.table::setkeyv(reg, unit)
       # In balanced panels, the number of observations per unit is constant across all units
-      if(balanced) n_obs_u <- NROW(reg[.(reg[1, eval(unit), with = F]), eval(unit), with = F, on = eval(unit)])
+      if(balanced) n_obs_u <- NROW(reg[.(reg[1, eval(unit), with = FALSE]), eval(unit), with = FALSE, on = eval(unit)])
       if(ncores > 1) {
         # Parallel computation
         cl <- parallel::makePSOCKcluster(ncores)
@@ -469,7 +468,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         XeeX_serial <- foreach::foreach(u = unique(reg[[unit]])) %dopar% {
           reg_u <- reg[.(u), on = eval(unit)]
           if(!balanced) n_obs_u <- NROW(reg_u)
-          return(time_dist(reg_u[[time]], lag_cutoff, as.matrix(reg_u[, eval(x_vars), with = F]), reg_u[["res"]], n_obs_u, n_vars))
+          return(time_dist(reg_u[[time]], lag_cutoff, as.matrix(reg_u[, eval(x_vars), with = FALSE]), reg_u[["res"]], n_obs_u, n_vars))
         }
         parallel::stopCluster(cl)
       } else {
@@ -477,7 +476,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
         XeeX_serial <- foreach::foreach(u = unique(reg[[unit]])) %do% {
           reg_u <- reg[.(u), on = eval(unit)]
           if(!balanced) n_obs_u <- NROW(reg_u)
-          return(time_dist(reg_u[[time]], lag_cutoff, as.matrix(reg_u[, eval(x_vars), with = F]), reg_u[["res"]], n_obs_u, n_vars))
+          return(time_dist(reg_u[[time]], lag_cutoff, as.matrix(reg_u[, eval(x_vars), with = FALSE]), reg_u[["res"]], n_obs_u, n_vars))
         }
       }
       XeeX_serial <- Reduce("+", XeeX_serial)
@@ -489,7 +488,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   }
   # Compute variance-covariance matrix
   if(model == "ols") {
-    V_spatial_HAC <- as.matrix(reg[, eval(x_vars), with = F])
+    V_spatial_HAC <- as.matrix(reg[, eval(x_vars), with = FALSE])
     rm(reg)
     V_spatial_HAC <- solve(crossprod(V_spatial_HAC)) * n_obs
     V_spatial_HAC <- V_spatial_HAC %*% (XeeX / n_obs) %*% V_spatial_HAC / n_obs
@@ -499,6 +498,9 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   }
   return(lmtest::coeftest(outp, vcov. = V_spatial_HAC))
 }
+
+# Avoid R CMD check note
+utils::globalVariables(c(".", "tp", "u"))
 
 # Function computing and adjusting distances
 dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat, sparse, batch, cs_ols_f, model, X = NULL, res = NULL, n_vars = NULL) {
@@ -530,7 +532,7 @@ dist_fun <- function(distances, coords, kernel, dist_cutoff, dist_comp, longlat,
       distances <- sf::st_coordinates(sf::st_as_sf(distances, crs = coords[[2]], sf_column_name = coords[[1]]))
     } else {
       # Coordinates as separate columns
-      distances <- distances[, eval(coords), with = F]
+      distances <- distances[, eval(coords), with = FALSE]
     }
     # Compute distance matrix
     if(cs_ols_f) {

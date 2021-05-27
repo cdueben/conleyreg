@@ -10,7 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = F}
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -30,10 +30,10 @@ knitr::opts_chunk$set(
 
 <p style="text-align: justify">Let us begin by generating a sample of 5,000 random, globally distributed longlat points:</p>
 
-```{r, eval = F}
+```{r, eval = FALSE}
 # Load packages
 packs <- list("tidyverse", "sf", "conleyreg")
-lapply(packs, require, character.only = T)
+lapply(packs, require, character.only = TRUE)
 
 # Generate 5,000 random longlat points
 data <- rbind(c(-180, -90), c(180, -90), c(180, 90), c(-180, 90), c(-180, -90)) %>%
@@ -45,18 +45,18 @@ data <- rbind(c(-180, -90), c(180, -90), c(180, 90), c(-180, 90), c(-180, -90)) 
   st_sf()
 ```
 
-<p style="text-align: justify">With 5,000 observations, there are 25 million bilateral distances linking each point to all other points and itself. To illustrate by how much these distances differ across `dist_comp` settings, we calculate them once with GEOS, which `conleyreg` does with `dist_comp = "precise"` while having the `sf` package set to `sf_use_s2(F)`, and once with the haversine function, i.e. `dist_comp = "fast"` in `conleyreg`. Dividing the latter by the former produces the ratios displayed in the following figure:</p>
+<p style="text-align: justify">With 5,000 observations, there are 25 million bilateral distances linking each point to all other points and itself. To illustrate by how much these distances differ across `dist_comp` settings, we calculate them once with GEOS, which `conleyreg` does with `dist_comp = "precise"` while having the `sf` package set to `sf_use_s2(FALSE)`, and once with the haversine function, i.e. `dist_comp = "fast"` in `conleyreg`. Dividing the latter by the former produces the ratios displayed in the following figure:</p>
 
-```{r, out.width = "98%", fig.align = "center", fig.cap = "Comparison of Haversine and GEOS Distances", echo = F}
+```{r, out.width = "98%", fig.align = "center", fig.cap = "Comparison of Haversine and GEOS Distances", echo = FALSE}
 knitr::include_graphics("h_geos_dist.png")
 
 ```
 
-<p style="text-align: justify">The two methods do not produce identical results, but the differences are quite small - less than 0.25 percent for much of the distribution. Of course, the discrepancies might look different for applications other than this global example. Nonetheless, using the faster haversine distance function is often a good idea, especially when playing around with the data rather than generating a table meant for publication. The `s2` distances that are computed when `dist_comp = "precise"` and `sf_use_s2(T)` turned out to even be identical to the haversine distances in this case.</p>
+<p style="text-align: justify">The two methods do not produce identical results, but the differences are quite small - less than 0.25 percent for much of the distribution. Of course, the discrepancies might look different for applications other than this global example. Nonetheless, using the faster haversine distance function is often a good idea, especially when playing around with the data rather than generating a table meant for publication. The `s2` distances that are computed when `dist_comp = "precise"` and `sf_use_s2(TRUE)` turned out to even be identical to the haversine distances in this case.</p>
 
 <p style="text-align: justify">The `fast` distance computations are, unlike the `precise` alternative, not outsourced to other packages. `conleyreg` directly implements them as C++ code which allows for a few more nuanced performance tweaks. One such feature is the use of sparse matrices. As the size of the distance matrix grows exponentially in the number of observations, it quickly surpasses your computer's memory limit. A data set of 50,000 points implies 2.5 billion matrix cells. This where sparse matrices come in handy. Instead of storing all cell values, they only store those that are not zero. Unless multiple points share a location, just $1/N$ of all cells in a distance matrix - those along the diagonal - are zero. However, `conleyreg` does not directly store distances in those cells. The package transforms distances into weights based on the specified distance cutoff and kernel. Only cells with distance below `dist_cutoff` are assigned a non-zero weight. If this radius is much smaller than the overall sample region, a vast majority of cells is set to zero - assuming an even distribution of points. In that case, a sparse matrix requires less RAM than a conventional dense matrix. Note that this advantage only holds with many zeros. Otherwise, sparse matrices can even be larger than their dense counterparts. We can illustrate the size differences using the above generated data and combined with various distance cutoffs and the below described bartlett kernel:</p>
 
-```{r, out.width = "98%", fig.align = "center", fig.cap = "Dense and Sparse Matrix Sizes", echo = F}
+```{r, out.width = "98%", fig.align = "center", fig.cap = "Dense and Sparse Matrix Sizes", echo = FALSE}
 knitr::include_graphics("matrix_sizes.png")
 
 ```
@@ -65,16 +65,16 @@ knitr::include_graphics("matrix_sizes.png")
 
 <p style="text-align: justify">The obvious difference between sparse and dense matrices is their size, already implied by their names. What mainly motivates `conleyreg` to use dense matrices as default, though, is their speed. The employed C++ Armadillo library stores sparse matrices in a compressed format with column-major ordering. They are designed to occupy little memory, but it takes longer to manipulate them than is the case for dense matrices. Let us look at that disparity in the above used example. Again we compute all $N(N-1)/2$ unique bilateral distances and plug their transformed value into the matrix, if they are larger than the specified `dist_cutoff`. There are $N(N-1)/2$ rather than $N^2$ unique distances to be derived because the matrix is symmetric - point A is as far from point B as point B is from A - and because values along the diagonal - the distance between a point and itself - are zero (one after the bartlett transformation).</p>
 
-```{r, out.width = "98%", fig.align = "center", fig.cap = "Speed of Dense and Sparse Matrix Manipulations", echo = F}
+```{r, out.width = "98%", fig.align = "center", fig.cap = "Speed of Dense and Sparse Matrix Manipulations", echo = FALSE}
 knitr::include_graphics("matrix_ctimes.png")
 
 ```
 
 <p style="text-align: justify">The higher the distance cutoff is, the more cells are modified. With a growing number of matrix accesses, sparse matrices become orders of magnitude slower than their dense counterparts.</p>
 
-<p style="text-align: justify">There is a middle way that falls in between the two options in terms of both speed and memory use. Instead of directly inserting values into sparse matrices on an element-wise basis, we can store all to be inserted values and their target cell locations in intermediate objects and then insert them all at once. This is called batch insertion. You can activate it by setting `batch = T`, conditional on already having sparse matrices activated via `dist_comp = "fast"` and `sparse = T`. The use of intermediate object requires more space than it does to directly enter the values into the sparse matrix, but it also speeds up the process, as the following figure illustrates.</p>
+<p style="text-align: justify">There is a middle way that falls in between the two options in terms of both speed and memory use. Instead of directly inserting values into sparse matrices on an element-wise basis, we can store all to be inserted values and their target cell locations in intermediate objects and then insert them all at once. This is called batch insertion. You can activate it by setting `batch = TRUE`, conditional on already having sparse matrices activated via `dist_comp = "fast"` and `sparse = TRUE`. The use of intermediate object requires more space than it does to directly enter the values into the sparse matrix, but it also speeds up the process, as the following figure illustrates.</p>
 
-```{r, out.width = "98%", fig.align = "center", fig.cap = "Speed of Element-Wise and Batch Insertion", echo = F}
+```{r, out.width = "98%", fig.align = "center", fig.cap = "Speed of Element-Wise and Batch Insertion", echo = FALSE}
 knitr::include_graphics("matrix_bctimes.png")
 
 ```
@@ -85,7 +85,7 @@ knitr::include_graphics("matrix_bctimes.png")
 # Kernels
 <p style="text-align: justify">As discussed in the above section, the computationally costly part of `conleyreg` is setting up and modifying an N x N matrix that is based on bilateral distances. Because we do not actually enter the distances into that matrix, but transform them first, we can benefit from sparse matrices. Distances above `dist_cutoff` are set to zero and those below are modified according to one out of two kernels. You can choose between a bartlett kernel and a uniform kernel. The values they generate are essentially weights with which pixels within the specified radius enter subsequent calculations. With a bartlett kernel the weights gradually diminish with distance. With a uniform kernel all points within the radius are assigned an equal weight of one. The subsequent plots illustrate these weights at given distances from a centrally located point:</p>
 
-```{r, out.width = "46%", fig.show = "hold", fig.align = "center", fig.cap = "Weights According to Different Kernels", echo = F}
+```{r, out.width = "46%", fig.show = "hold", fig.align = "center", fig.cap = "Weights According to Different Kernels", echo = FALSE}
 knitr::include_graphics("matrix_bartlett.png")
 knitr::include_graphics("matrix_uniform.png")
 
