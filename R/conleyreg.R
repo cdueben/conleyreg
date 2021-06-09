@@ -106,8 +106,8 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
 
     # Check if the CRS is either longlat or uses meters as units (otherwise convert units to meters)
     if(!sf::st_is_longlat(data)) {
-      if(gsub("[+]units=", "", regmatches(raster::crs(data)@projargs, regexpr("[+]units=+\\S", raster::crs(data)@projargs))) != "m") {
-        data <- sf::st_transform(data, crs = gsub("[+]units=+\\S", "+units=m", raster::crs(data)@projargs))
+      if(gsub("[+]units=", "", regmatches(sf::st_crs(data)$proj4string, regexpr("[+]units=+\\S", sf::st_crs(data)$proj4string))) != "m") {
+        data <- sf::st_transform(data, crs = gsub("[+]units=+\\S", "+units=m", sf::st_crs(data)$proj4string))
       }
       longlat <- FALSE
     } else if(sf::st_is_longlat(data)) {
