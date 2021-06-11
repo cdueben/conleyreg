@@ -83,8 +83,6 @@
 #'
 #' @useDynLib conleyreg, .registration = TRUE
 #'
-#' @exportPattern "^[[:alpha:]]+"
-#'
 #' @export
 conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "probit"), unit = NULL, time = NULL, lat = NULL, lon = NULL, kernel = c("bartlett", "uniform"),
   lag_cutoff = 0, intercept = TRUE, verbose = TRUE, ncores = NULL, dist_comp = c("precise", "fast"), sparse = FALSE, batch = FALSE) {
