@@ -458,7 +458,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       # Set unit variable as key (speeds up subsetting)
       data.table::setkeyv(reg, unit)
       # In balanced panels, the number of observations per unit is constant across all units
-      if(balanced) n_obs_u <- NROW(reg[.(reg[1, eval(unit), with = FALSE]), eval(unit), with = FALSE, on = eval(unit)])
+      if(balanced) n_obs_u <- NROW(reg[.(reg[1]), eval(unit), with = FALSE, on = eval(unit)])
       if(ncores > 1) {
         # Parallel computation
         cl <- parallel::makePSOCKcluster(ncores)
