@@ -1,4 +1,6 @@
-This package estimates ols, logit, and probit models with Conley standard errors. It extends and modifies earlier implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring, (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley, of which all but the one by Timothy Conley are extensions and modifications of earlier implementations themselves.
+This package estimates ols, logit, probit, and poisson models with Conley standard errors.
+
+The package started by gradually merging and extending multiple packages and other published scripts on this econometric technique. Its current state ventures well beyond its earlier foundations and strongly emphasizes computational optimization. Details are available in the function documentation and in the vignette.
 
 You can install this package using devtools::install_github("ChristianDueben/conleyreg", build_vignettes = T) in R. devtools::install_github("ChristianDueben/conleyreg") installs the package without the vignette.
 
