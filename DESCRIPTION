@@ -1,17 +1,18 @@
 Package: conleyreg
 Type: Package
 Title: Estimations using Conley Standard Errors
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(person("Christian", "Düben", email = "christian.dueben@uni-hamburg.de", role = c("aut", "cre")), person("Richard", "Bluhm", role = "cph"), 
   person("Luis", "Calderon", role = "cph"), person("Darin", "Christensen", role = "cph"), person("Timothy", "Conley", role = "cph"), person("Thiemo", "Fetzer", role = "cph"), 
   person("Leander", "Heldring", role = "cph"))
-Description: Merges and extends multiple packages and other published scripts calculating Conley (1999) <doi:10.1016/S0304-4076(98)00084-0> standard errors. Details are 
-  available in the function documentation and in the vignette.
+Description: Functions calculating Conley (1999) <doi:10.1016/S0304-4076(98)00084-0> standard errors. The package started by merging and extending multiple packages and 
+  other published scripts on this econometric technique. It strongly emphasizes computational optimization. Details are available in the function documentation and in 
+  the vignette.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: base, stats, sf, Rcpp, RcppArmadillo, data.table, lfe, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix, lwgeom
-Suggests: rmarkdown, knitr, s2
+Imports: base, stats, sf, Rcpp, data.table, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix, lwgeom, s2, methods
+Suggests: rmarkdown, knitr
 LinkingTo: Rcpp, RcppArmadillo
 RdMacros: Rdpack
 SystemRequirements: GNU make

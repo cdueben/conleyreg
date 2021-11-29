@@ -6,6 +6,183 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
+// XeeXhC_d_d_R
+arma::mat XeeXhC_d_d_R(arma::mat& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_obs_t, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_XeeXhC_d_d_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(XeeXhC_d_d_R(distances, X, e, n_obs, n_obs_t, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// XeeXhC_d_s_R
+arma::mat XeeXhC_d_s_R(arma::Mat<short>& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_obs_t, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_XeeXhC_d_s_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Mat<short>& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(XeeXhC_d_s_R(distances, X, e, n_obs, n_obs_t, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// XeeXhC_s_d_R
+arma::mat XeeXhC_s_d_R(arma::sp_mat& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_obs_t, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_XeeXhC_s_d_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(XeeXhC_s_d_R(distances, X, e, n_obs, n_obs_t, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_mat_d_d
+arma::mat dist_mat_d_d(arma::mat& coords, unsigned int n_obs, double dist_cutoff, bool haversine, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_mat_d_d(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_mat_d_d(coords, n_obs, dist_cutoff, haversine, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_mat_d
+arma::mat dist_mat_d(arma::mat& coords, unsigned int n_obs, bool haversine, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_mat_d(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP haversineSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_mat_d(coords, n_obs, haversine, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d
+arma::sp_mat dist_spmat_d_d(arma::mat& coords, unsigned int n_obs, double dist_cutoff, bool haversine, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_spmat_d_d(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d(coords, n_obs, dist_cutoff, haversine, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d_b
+arma::sp_mat dist_spmat_d_d_b(arma::mat& coords, unsigned int n_obs, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_dist_spmat_d_d_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d_b(coords, n_obs, dist_cutoff, haversine, batch_ram_opt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d_b_p
+arma::sp_mat dist_spmat_d_d_b_p(arma::mat& coords, unsigned int n_obs, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_spmat_d_d_b_p(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d_b_p(coords, n_obs, dist_cutoff, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d_r
+arma::SpMat<unsigned int> dist_spmat_d_d_r(arma::mat& coords, unsigned int n_obs, unsigned int dist_cutoff, bool haversine, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_spmat_d_d_r(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d_r(coords, n_obs, dist_cutoff, haversine, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d_b_r
+arma::SpMat<unsigned int> dist_spmat_d_d_b_r(arma::mat& coords, unsigned int n_obs, unsigned int dist_cutoff, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_dist_spmat_d_d_b_r(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d_b_r(coords, n_obs, dist_cutoff, haversine, batch_ram_opt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dist_spmat_d_d_b_r_p
+arma::SpMat<unsigned int> dist_spmat_d_d_b_r_p(arma::mat& coords, unsigned int n_obs, unsigned int dist_cutoff, bool haversine, unsigned short int batch_ram_opt, unsigned short int n_cores);
+RcppExport SEXP _conleyreg_dist_spmat_d_d_b_r_p(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(dist_spmat_d_d_b_r_p(coords, n_obs, dist_cutoff, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // isbalancedcpp
 int isbalancedcpp(arma::mat M);
 RcppExport SEXP _conleyreg_isbalancedcpp(SEXP MSEXP) {
@@ -17,392 +194,388 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_mat_b
-arma::mat haversine_mat_b(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_mat_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
+// lp
+arma::mat lp(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, bool sparse, bool bartlett, bool flt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP sparseSEXP, SEXP bartlettSEXP, SEXP fltSEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_b(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_mat_u
-arma::Mat<short> haversine_mat_u(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_mat_u(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_u(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_b
-arma::sp_mat haversine_spmat_b(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_b(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_u
-arma::SpMat<short> haversine_spmat_u(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_u(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_u(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_b_bi
-arma::sp_mat haversine_spmat_b_bi(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_b_bi(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_b_bi(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_u_bi
-arma::SpMat<short> haversine_spmat_u_bi(arma::mat coords, unsigned int n_obs, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_u_bi(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_u_bi(coords, n_obs, dist_cutoff));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XeeXhC_b
-arma::mat XeeXhC_b(arma::mat distances, arma::mat X, arma::vec e, unsigned int n_obs_t, unsigned int n_vars);
-RcppExport SEXP _conleyreg_XeeXhC_b(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type distances(distancesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(XeeXhC_b(distances, X, e, n_obs_t, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XeeXhC_u
-arma::mat XeeXhC_u(arma::Mat<short> distances, arma::mat X, arma::vec e, unsigned int n_obs_t, unsigned int n_vars);
-RcppExport SEXP _conleyreg_XeeXhC_u(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::Mat<short> >::type distances(distancesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(XeeXhC_u(distances, X, e, n_obs_t, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XeeXhCsp_b
-arma::mat XeeXhCsp_b(arma::sp_mat distances, arma::mat X, arma::vec e, unsigned int n_obs_t, unsigned int n_vars);
-RcppExport SEXP _conleyreg_XeeXhCsp_b(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::sp_mat >::type distances(distancesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(XeeXhCsp_b(distances, X, e, n_obs_t, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_mat_XeeXhC_b
-arma::mat haversine_mat_XeeXhC_b(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_mat_XeeXhC_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_XeeXhC_b(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_mat_XeeXhC_u
-arma::mat haversine_mat_XeeXhC_u(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_mat_XeeXhC_u(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_XeeXhC_u(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_XeeXhC_b
-arma::mat haversine_spmat_XeeXhC_b(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_spmat_XeeXhC_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_XeeXhC_b(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_XeeXhC_u
-arma::mat haversine_spmat_XeeXhC_u(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_spmat_XeeXhC_u(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_XeeXhC_u(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_XeeXhC_b_bi
-arma::mat haversine_spmat_XeeXhC_b_bi(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_spmat_XeeXhC_b_bi(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_XeeXhC_b_bi(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_spmat_XeeXhC_u_bi
-arma::mat haversine_spmat_XeeXhC_u_bi(arma::mat coords, unsigned int n_obs, double dist_cutoff, arma::mat X, arma::vec e, unsigned int n_vars);
-RcppExport SEXP _conleyreg_haversine_spmat_XeeXhC_u_bi(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
-    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_XeeXhC_u_bi(coords, n_obs, dist_cutoff, X, e, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// lp_filling
-arma::mat lp_filling(arma::mat distances, arma::mat X, arma::vec e, unsigned int n_obs_t, unsigned int n_vars);
-RcppExport SEXP _conleyreg_lp_filling(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obs_tSEXP, SEXP n_varsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type distances(distancesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(lp_filling(distances, X, e, n_obs_t, n_vars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// haversine_mat_lp_b
-arma::mat haversine_mat_lp_b(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_mat_lp_b(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_lp_b(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparse(sparseSEXP);
+    Rcpp::traits::input_parameter< bool >::type bartlett(bartlettSEXP);
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, sparse, bartlett, flt, n_cores));
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_mat_lp_u
-arma::mat haversine_mat_lp_u(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_mat_lp_u(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
+// lp_d_b
+arma::mat lp_d_b(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_lp_d_b(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_mat_lp_u(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_d_b(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt));
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_spmat_lp_b
-arma::mat haversine_spmat_lp_b(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_lp_b(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
+// lp_f_b
+arma::mat lp_f_b(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_lp_f_b(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_lp_b(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_f_b(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt));
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_spmat_lp_u
-arma::mat haversine_spmat_lp_u(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_lp_u(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
+// lp_d_b_p
+arma::mat lp_d_b_p(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_d_b_p(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_lp_u(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_d_b_p(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt, n_cores));
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_spmat_lp_b_bi
-arma::mat haversine_spmat_lp_b_bi(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_lp_b_bi(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
+// lp_f_b_p
+arma::mat lp_f_b_p(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_f_b_p(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_lp_b_bi(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_f_b_p(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt, n_cores));
     return rcpp_result_gen;
 END_RCPP
 }
-// haversine_spmat_lp_u_bi
-arma::mat haversine_spmat_lp_u_bi(arma::mat coords, arma::mat X, arma::vec e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff);
-RcppExport SEXP _conleyreg_haversine_spmat_lp_u_bi(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP) {
+// lp_s_b
+arma::mat lp_s_b(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_lp_s_b(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type e(eSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(haversine_spmat_lp_u_bi(coords, X, e, n_obs, n_vars, dist_cutoff));
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_s_b(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt));
     return rcpp_result_gen;
 END_RCPP
 }
-// time_dist
-arma::mat time_dist(arma::vec times, double lag_cutoff, arma::mat X, arma::vec res, unsigned int n_obs_u, int n_vars);
-RcppExport SEXP _conleyreg_time_dist(SEXP timesSEXP, SEXP lag_cutoffSEXP, SEXP XSEXP, SEXP resSEXP, SEXP n_obs_uSEXP, SEXP n_varsSEXP) {
+// lp_s_b_p
+arma::mat lp_s_b_p(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_s_b_p(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type times(timesSEXP);
-    Rcpp::traits::input_parameter< double >::type lag_cutoff(lag_cutoffSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type res(resSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_obs_u(n_obs_uSEXP);
-    Rcpp::traits::input_parameter< int >::type n_vars(n_varsSEXP);
-    rcpp_result_gen = Rcpp::wrap(time_dist(times, lag_cutoff, X, res, n_obs_u, n_vars));
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_s_b_p(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lp_filling_d_d_R
+arma::mat lp_filling_d_d_R(arma::mat& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_filling_d_d_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_filling_d_d_R(distances, X, e, n_obs, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lp_filling_d_s_R
+arma::mat lp_filling_d_s_R(arma::Mat<short>& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_filling_d_s_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Mat<short>& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_filling_d_s_R(distances, X, e, n_obs, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lp_filling_s_d_R
+arma::mat lp_filling_s_d_R(arma::sp_mat& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_filling_s_d_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type distances(distancesSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_filling_s_d_R(distances, X, e, n_obs, n_vars, n_cores));
     return rcpp_result_gen;
 END_RCPP
 }
 // lp_vcov
-arma::mat lp_vcov(arma::mat V, arma::mat filling, unsigned int n_vars);
+arma::mat lp_vcov(arma::mat& V, arma::mat& filling, unsigned int n_vars);
 RcppExport SEXP _conleyreg_lp_vcov(SEXP VSEXP, SEXP fillingSEXP, SEXP n_varsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type V(VSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type filling(fillingSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type V(VSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type filling(fillingSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
     rcpp_result_gen = Rcpp::wrap(lp_vcov(V, filling, n_vars));
     return rcpp_result_gen;
 END_RCPP
 }
+// ols
+arma::mat ols(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, bool sparse, bool bartlett, bool flt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_ols(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP sparseSEXP, SEXP bartlettSEXP, SEXP fltSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< bool >::type sparse(sparseSEXP);
+    Rcpp::traits::input_parameter< bool >::type bartlett(bartlettSEXP);
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, sparse, bartlett, flt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_d_b
+arma::mat ols_d_b(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_ols_d_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_d_b(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_f_b
+arma::mat ols_f_b(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_ols_f_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_f_b(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_d_b_p
+arma::mat ols_d_b_p(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_ols_d_b_p(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_d_b_p(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_f_b_p
+arma::mat ols_f_b_p(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_ols_f_b_p(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_f_b_p(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_s_b
+arma::mat ols_s_b(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt);
+RcppExport SEXP _conleyreg_ols_s_b(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_s_b(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ols_s_b_p
+arma::mat ols_s_b_p(arma::mat& coords, unsigned int n_obs, unsigned int n_obs_t, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, unsigned short int batch_ram_opt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_ols_s_b_p(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP n_obs_tSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP batch_ram_optSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_t(n_obs_tSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< unsigned short int >::type batch_ram_opt(batch_ram_optSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_s_b_p(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
+// time_dist
+arma::mat time_dist(arma::vec& times, double lag_cutoff, arma::mat& X, arma::vec& res, unsigned int n_obs_u, unsigned int n_vars, unsigned int n_cores);
+RcppExport SEXP _conleyreg_time_dist(SEXP timesSEXP, SEXP lag_cutoffSEXP, SEXP XSEXP, SEXP resSEXP, SEXP n_obs_uSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< double >::type lag_cutoff(lag_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type res(resSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs_u(n_obs_uSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(time_dist(times, lag_cutoff, X, res, n_obs_u, n_vars, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_conleyreg_XeeXhC_d_d_R", (DL_FUNC) &_conleyreg_XeeXhC_d_d_R, 7},
+    {"_conleyreg_XeeXhC_d_s_R", (DL_FUNC) &_conleyreg_XeeXhC_d_s_R, 7},
+    {"_conleyreg_XeeXhC_s_d_R", (DL_FUNC) &_conleyreg_XeeXhC_s_d_R, 7},
+    {"_conleyreg_dist_mat_d_d", (DL_FUNC) &_conleyreg_dist_mat_d_d, 5},
+    {"_conleyreg_dist_mat_d", (DL_FUNC) &_conleyreg_dist_mat_d, 4},
+    {"_conleyreg_dist_spmat_d_d", (DL_FUNC) &_conleyreg_dist_spmat_d_d, 5},
+    {"_conleyreg_dist_spmat_d_d_b", (DL_FUNC) &_conleyreg_dist_spmat_d_d_b, 5},
+    {"_conleyreg_dist_spmat_d_d_b_p", (DL_FUNC) &_conleyreg_dist_spmat_d_d_b_p, 6},
+    {"_conleyreg_dist_spmat_d_d_r", (DL_FUNC) &_conleyreg_dist_spmat_d_d_r, 5},
+    {"_conleyreg_dist_spmat_d_d_b_r", (DL_FUNC) &_conleyreg_dist_spmat_d_d_b_r, 5},
+    {"_conleyreg_dist_spmat_d_d_b_r_p", (DL_FUNC) &_conleyreg_dist_spmat_d_d_b_r_p, 6},
     {"_conleyreg_isbalancedcpp", (DL_FUNC) &_conleyreg_isbalancedcpp, 1},
-    {"_conleyreg_haversine_mat_b", (DL_FUNC) &_conleyreg_haversine_mat_b, 3},
-    {"_conleyreg_haversine_mat_u", (DL_FUNC) &_conleyreg_haversine_mat_u, 3},
-    {"_conleyreg_haversine_spmat_b", (DL_FUNC) &_conleyreg_haversine_spmat_b, 3},
-    {"_conleyreg_haversine_spmat_u", (DL_FUNC) &_conleyreg_haversine_spmat_u, 3},
-    {"_conleyreg_haversine_spmat_b_bi", (DL_FUNC) &_conleyreg_haversine_spmat_b_bi, 3},
-    {"_conleyreg_haversine_spmat_u_bi", (DL_FUNC) &_conleyreg_haversine_spmat_u_bi, 3},
-    {"_conleyreg_XeeXhC_b", (DL_FUNC) &_conleyreg_XeeXhC_b, 5},
-    {"_conleyreg_XeeXhC_u", (DL_FUNC) &_conleyreg_XeeXhC_u, 5},
-    {"_conleyreg_XeeXhCsp_b", (DL_FUNC) &_conleyreg_XeeXhCsp_b, 5},
-    {"_conleyreg_haversine_mat_XeeXhC_b", (DL_FUNC) &_conleyreg_haversine_mat_XeeXhC_b, 6},
-    {"_conleyreg_haversine_mat_XeeXhC_u", (DL_FUNC) &_conleyreg_haversine_mat_XeeXhC_u, 6},
-    {"_conleyreg_haversine_spmat_XeeXhC_b", (DL_FUNC) &_conleyreg_haversine_spmat_XeeXhC_b, 6},
-    {"_conleyreg_haversine_spmat_XeeXhC_u", (DL_FUNC) &_conleyreg_haversine_spmat_XeeXhC_u, 6},
-    {"_conleyreg_haversine_spmat_XeeXhC_b_bi", (DL_FUNC) &_conleyreg_haversine_spmat_XeeXhC_b_bi, 6},
-    {"_conleyreg_haversine_spmat_XeeXhC_u_bi", (DL_FUNC) &_conleyreg_haversine_spmat_XeeXhC_u_bi, 6},
-    {"_conleyreg_lp_filling", (DL_FUNC) &_conleyreg_lp_filling, 5},
-    {"_conleyreg_haversine_mat_lp_b", (DL_FUNC) &_conleyreg_haversine_mat_lp_b, 6},
-    {"_conleyreg_haversine_mat_lp_u", (DL_FUNC) &_conleyreg_haversine_mat_lp_u, 6},
-    {"_conleyreg_haversine_spmat_lp_b", (DL_FUNC) &_conleyreg_haversine_spmat_lp_b, 6},
-    {"_conleyreg_haversine_spmat_lp_u", (DL_FUNC) &_conleyreg_haversine_spmat_lp_u, 6},
-    {"_conleyreg_haversine_spmat_lp_b_bi", (DL_FUNC) &_conleyreg_haversine_spmat_lp_b_bi, 6},
-    {"_conleyreg_haversine_spmat_lp_u_bi", (DL_FUNC) &_conleyreg_haversine_spmat_lp_u_bi, 6},
-    {"_conleyreg_time_dist", (DL_FUNC) &_conleyreg_time_dist, 6},
+    {"_conleyreg_lp", (DL_FUNC) &_conleyreg_lp, 11},
+    {"_conleyreg_lp_d_b", (DL_FUNC) &_conleyreg_lp_d_b, 8},
+    {"_conleyreg_lp_f_b", (DL_FUNC) &_conleyreg_lp_f_b, 8},
+    {"_conleyreg_lp_d_b_p", (DL_FUNC) &_conleyreg_lp_d_b_p, 9},
+    {"_conleyreg_lp_f_b_p", (DL_FUNC) &_conleyreg_lp_f_b_p, 9},
+    {"_conleyreg_lp_s_b", (DL_FUNC) &_conleyreg_lp_s_b, 8},
+    {"_conleyreg_lp_s_b_p", (DL_FUNC) &_conleyreg_lp_s_b_p, 9},
+    {"_conleyreg_lp_filling_d_d_R", (DL_FUNC) &_conleyreg_lp_filling_d_d_R, 6},
+    {"_conleyreg_lp_filling_d_s_R", (DL_FUNC) &_conleyreg_lp_filling_d_s_R, 6},
+    {"_conleyreg_lp_filling_s_d_R", (DL_FUNC) &_conleyreg_lp_filling_s_d_R, 6},
     {"_conleyreg_lp_vcov", (DL_FUNC) &_conleyreg_lp_vcov, 3},
+    {"_conleyreg_ols", (DL_FUNC) &_conleyreg_ols, 12},
+    {"_conleyreg_ols_d_b", (DL_FUNC) &_conleyreg_ols_d_b, 9},
+    {"_conleyreg_ols_f_b", (DL_FUNC) &_conleyreg_ols_f_b, 9},
+    {"_conleyreg_ols_d_b_p", (DL_FUNC) &_conleyreg_ols_d_b_p, 10},
+    {"_conleyreg_ols_f_b_p", (DL_FUNC) &_conleyreg_ols_f_b_p, 10},
+    {"_conleyreg_ols_s_b", (DL_FUNC) &_conleyreg_ols_s_b, 9},
+    {"_conleyreg_ols_s_b_p", (DL_FUNC) &_conleyreg_ols_s_b_p, 10},
+    {"_conleyreg_time_dist", (DL_FUNC) &_conleyreg_time_dist, 7},
     {NULL, NULL, 0}
 };
 

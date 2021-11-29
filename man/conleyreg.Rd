@@ -8,7 +8,7 @@ conleyreg(
   formula,
   data,
   dist_cutoff,
-  model = c("ols", "logit", "probit"),
+  model = c("ols", "logit", "probit", "poisson"),
   unit = NULL,
   time = NULL,
   lat = NULL,
@@ -18,100 +18,164 @@ conleyreg(
   intercept = TRUE,
   verbose = TRUE,
   ncores = NULL,
-  dist_comp = c("precise", "fast"),
+  par_dim = c("cross-section", "time"),
+  dist_comp = NULL,
+  crs = NULL,
+  st_distance = FALSE,
+  dist_which = NULL,
   sparse = FALSE,
-  batch = FALSE
+  batch = TRUE,
+  batch_ram_opt = NULL,
+  float = FALSE,
+  reg_ram_opt = FALSE,
+  dist_mat = NULL,
+  dist_mat_conv = TRUE,
+  vcov = FALSE,
+  gof = FALSE
 )
 }
 \arguments{
-\item{formula}{regression equation as formula or character string}
+\item{formula}{regression equation as formula or character string. Avoid interactions and transformations inside the equation. I.e. use
+\code{y ~ x1 + x1_2, data = dplyr::mutate(data, x1_2 = x1^2)} instead of \code{y ~ x1 + x1^2, data = data)}.}
 
-\item{data}{input data, either in non-spatial data frame format (includes tibbles and data tables) with columns denoting coordinates or in sf format with a spatial
-points geometry. When using a non-spatial data frame format, the coordinates must be longlat. sf objects can use any projection. Note that the projection can influence
-the computed distances, which is a general phenomenon in GIS software and not specific to \code{conleyreg}.}
+\item{data}{input data. Either (i) in non-spatial data frame format (includes tibbles and data tables) with columns denoting coordinates or (ii) in sf format. In
+case of an sf object, all non-point geometry types are converted to spatial points, based on the feature's centroid. When using a non-spatial data frame format
+with projected, i.e. non-longlat, coordinates, \code{crs} must be specified. Note that the projection can influence the computed distances, which is a general
+phenomenon in GIS software and not specific to \code{conleyreg}. The computationally fastest option is to use a data table with coordinates in the crs in which
+the distances are to be derived (longlat for spherical and projected for planar), and with time and unit set as keys in the panel case. An sf object as input is
+the slowest option.}
 
 \item{dist_cutoff}{the distance cutoff in km}
 
-\item{model}{the applied model. Either \code{ols} (default), \code{logit}, or \code{probit}. \code{logit} and \code{probit} are currently restricted to
-cross-sectional applications.}
+\item{model}{the applied model. Either \code{"ols"} (default), \code{"logit"}, \code{"probit"} or \code{"poisson"}. \code{"logit"}, \code{"probit"}, and
+\code{"poisson"} are currently restricted to cross-sectional applications.}
 
-\item{unit}{the variable identifying the cross-sectional dimension. Only needs to be specified, if data is not cross-sectional. Assumes that units do not change their
-location over time.}
+\item{unit}{the variable identifying the cross-sectional dimension. Only needs to be specified, if data is not cross-sectional. Assumes that units do not change
+their location over time.}
 
-\item{time}{the variable identifying the time dimension}
+\item{time}{the variable identifying the time dimension. Only needs to be specified, if data is not cross-sectional.}
 
-\item{lat}{the variable specifying the latitude in longlat format}
+\item{lat}{the variable specifying the latitude}
 
-\item{lon}{the variable specifying the longitude in longlat format}
+\item{lon}{the variable specifying the longitude}
 
-\item{kernel}{the kernel applied within the radius. Either \code{bartlett} (default) or \code{uniform}.}
+\item{kernel}{the kernel applied within the radius. Either \code{"bartlett"} (default) or \code{"uniform"}.}
 
 \item{lag_cutoff}{the cutoff along the time dimension. Defaults to 0, meaning that standard errors are only adjusted cross-sectionally.}
 
-\item{intercept}{boolean specifying whether to include an intercept. Defaults to \code{TRUE}. Fixed effects models omit the intercept automatically.}
+\item{intercept}{logical specifying whether to include an intercept. Defaults to \code{TRUE}. Fixed effects models omit the intercept automatically.}
 
-\item{verbose}{boolean specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.}
+\item{verbose}{logical specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.}
 
-\item{ncores}{the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs. Does not affect cross-sectional applications.}
+\item{ncores}{the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs.}
 
-\item{dist_comp}{choice between \code{precise} (default) and \code{fast} distance computations when data is longlat. Even when choosing \code{precise}, you can still
-tweak the performance by setting the library that the \code{sf} package uses in distance computations. \code{sf::sf_use_s2(TRUE)} makes it rely on s2 which should be
-faster than the alternative choice of GEOS with \code{sf::sf_use_s2(FALSE)}. With \code{precise}, distances are great circle distances, with \code{fast} they are
-haversine distances. Non-longlat data is not affected by this parameter and always uses Euclidean distances.}
+\item{par_dim}{the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. When
+\code{st_distance = TRUE}, this setting only affects the parallelization in the standard error correction regarding serial correlation, with parallelization in
+the distance computations automatically set to the time dimension.}
 
-\item{sparse}{boolean specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect when
-\code{dist_comp = "fast"}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located outside the
-respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.}
+\item{dist_comp}{choice between \code{"spherical"} and \code{"planar"} distance computations. When unspecified, the input data determines the method: longlat uses
+spherical (Haversine) distances, alternatives (projected data) use planar (Euclidean) distances. When inserting projected data but specifying
+\code{dist_comp = "spherical"}, the data is transformed to longlat. Combining unprojected data with \code{dist_comp = "planar"} transforms the data to an
+azimuthal equidistant format centered at the data's centroid.}
 
-\item{batch}{boolean specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}). Defaults
-to \code{FALSE}. This argument only has an effect when \code{dist_comp = "fast"} and \code{sparse = TRUE}. Batch insertion is faster than element-wise insertion, but
-requires more memory.}
+\item{crs}{the coordinate reference system, if the data is projected. Object of class crs or input string to \code{sf::st_crs}. This parameter can be omitted, if
+the data is in longlat format (EPSG: 4326), i.e. not projected. If the projection does not use meters as units, this function converts to units to meters.}
+
+\item{st_distance}{logical specifying whether distances should be computed via \code{sf::st_distance} (\code{TRUE}) or via conleyreg's internal, computationally
+optimized distance functions (\code{FALSE}). The default (\code{FALSE}) produces the same distances as \code{sf::st_distance} does with S2 enabled. I.e. it uses
+Haversine (great circle) distances for longlat data and Euclidean distances otherwise. Cases in which you might want to set this argument to \code{TRUE} are e.g.
+when you want enforce the GEOS approach to computing distances or when you are using an peculiar projection, for which the sf package might include further
+procedures. Cross-sectional parallelization is not available when \code{st_distance = TRUE} and the function automatically switches to parallelization along the
+time dimension, if the data is a panel and \code{ncores != 1}. Third and fourth dimensions, termed Z and M in sf, are not accounted for in any case. Note that
+\code{sf::st_distance} is considerably slower than conleyreg's internal distance functions.}
+
+\item{dist_which}{the type of distance to use when \code{st_distance = TRUE}. If unspecified, the function defaults to great circle distances for longlat data and
+to Euclidean distances otherwise. See \code{sf::st_distance} for options.}
+
+\item{sparse}{logical specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect
+when \code{st_distance = FALSE}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located
+outside the respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory.}
+
+\item{batch}{logical specifying whether distances are inserted into a sparse matrix element by element (\code{FALSE}) or all at once as a batch (\code{TRUE}).
+Defaults to \code{TRUE}. This argument only has an effect when \code{st_distance = FALSE} and \code{sparse = TRUE}. Batch insertion is faster than element-wise
+insertion, but requires more memory.}
+
+\item{batch_ram_opt}{the degree to which batch insertion should be optimized for RAM usage. Can be set to one out of the three levels: \code{"none"},
+\code{"moderate"} (default), and \code{"heavy"}. Higher levels imply lower RAM usage, but also lower speeds.}
+
+\item{float}{logical specifying whether distance matrices should use the float (\code{TRUE}) rather than the double (\code{FALSE}) data type. Floats are less
+precise and than doubles and thereby occupy less space than doubles do. They should only be used when the machine's RAM is insufficient for both the dense and
+the sparse matrix cases, as they affect the precision of distance values. The \code{float} option only has an effect in Bartlett kernel cases because uniform
+kernel applications store the data in a smaller integer data type.}
+
+\item{reg_ram_opt}{logical specifying whether the regression should be optimized for RAM usage. Defaults to \code{FALSE}. Changing it to \code{TRUE} slows down
+the function. This argument only affects the baseline estimation, not the standard error correction.}
+
+\item{dist_mat}{a distance matrix. Pre-computing a distance matrix and passing it to this argument is only more efficient than having \code{conleyreg} derive it,
+if you execute \code{conleyreg} multiple times with the same input data. In that case, it is recommended to compute the distance matrix via
+\code{\link[conleyreg]{dist_mat}}, which is optimized for this purpose and also evaluates various other steps that are identical across regressions on the same
+input data. Generally, you must not modify the input data between deriving the distance matrix and running \code{conleyreg}. That includes dropping observations
+or changing values of the unit, time, or coordinate variables. In cross-sectional settings, you must not re-order rows either. If you compute distances through a
+function other than \code{\link[conleyreg]{dist_mat}}, there are a few additional issues to account for. (i) In the panel scenario, you must order observations by
+time and unit in ascending order. I.e. cells [1, 2] and [2, 1] of the distance matrix must refer to the distance between unit 1 and unit 2, cells [2, 3] and [3, 2]
+to the distance between unit 2 and unit 3 etc. The unit numbers in this example refer to their rank when they are sorted. (ii) \code{dist_cutoff} does not refer to
+kilometers, but to the units of the matrix. (iii) While in a balanced panel you only enter one matrix that is applied to all periods, you supply distances as a
+list of matrices in the unbalanced case. The matrices must be sorted, with the first list element containing the first period's distance matrix etc. (iv) Zeros in
+sparse matrices are interpreted as values above the distance cutoff and NaN values are interpreted as zeros. (v) The matrices in the list must all be of the same
+type - all dense or all sparse. (vi) Distance matrices must only contain non-missing, finite numbers (and NaN in the case of sparse matrices).}
+
+\item{dist_mat_conv}{logical specifying whether to convert the distance matrix to a list, if the panel turns out to be unbalanced because of missing values. This
+setting is only relevant, if you enter a balanced panel's distance matrix not derived via \code{\link[conleyreg]{dist_mat}}. If \code{TRUE} (the default), the
+function only drops rows with missing values. If \code{FALSE}, the function maintains the panel's balanced character by dropping units with missing values in at
+least one period from the entire data set.}
+
+\item{vcov}{logical specifying whether to return variance-covariance matrix (\code{TRUE}) rather than the default \code{lmtest::coeftest} matrix of coefficient
+estimates and standard errors (\code{FALSE}).}
+
+\item{gof}{logical specifying whether to return goodness of fit measures. Defaults to \code{FALSE}. If \code{TRUE}, the function produces a list.}
 }
 \value{
-Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors. \insertNoCite{*}{conleyreg}
+Returns a \code{lmtest::coeftest} matrix of coefficient estimates and standard errors by default. Can be changed to the variance-covariance matrix by
+specifying \code{vcov = TRUE}. \insertNoCite{*}{conleyreg}
 }
 \description{
-This function estimates ols, logit, and probit models with Conley standard errors.
+This function estimates ols, logit, probit, and poisson models with Conley standard errors.
 }
 \details{
 This code is an extension and modification of earlier Conley standard error implementations by (i) Richard Bluhm, (ii) Luis Calderon and Leander Heldring,
 (iii) Darin Christensen and Thiemo Fetzer, and (iv) Timothy Conley. Results vary across implementations because of different distance functions and buffer shapes.
+
+This function has reasonable defaults. If your machine has insufficent RAM to allocate the default dense matrices, try sparse matrices. If the RAM error persists,
+try setting a lower \code{dist_cutoff}, use floats, select a uniform kernel, experiment with \code{batch_ram_opt}, \code{reg_ram_opt}, or \code{batch}.
+
+Consult the vignette, \code{vignette("conleyreg_introduction", "conleyreg")}, for a more extensive discussion.
 }
 \examples{
+\donttest{
 # Generate cross-sectional example data
-data <- data.frame(y = sample(c(0, 1), 100, replace = TRUE),
-  x1 = stats::runif(100, -50, 50),
-  lat = runif(100, -90, 90),
-  lon = runif(100, -180, 180))
+data <- rnd_locations(100, output_type = "data.frame")
+data$y <- sample(c(0, 1), 100, replace = TRUE)
+data$x1 <- stats::runif(100, -50, 50)
 
 # Estimate ols model with Conley standard errors using a 1000 km radius
 conleyreg(y ~ x1, data, 1000, lat = "lat", lon = "lon")
 
-# Estimate same model with an sf object as input
-conleyreg(y ~ x1, sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326), 1000)
-
-# Estimate same model with an sf object of another projection as input
-conleyreg(y ~ x1, sf::st_transform(sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326),
-  crs = "+proj=aeqd"), 1000)
-
 # Estimate logit model
 conleyreg(y ~ x1, data, 1000, "logit", lat = "lat", lon = "lon")
 
-# Add variable
-data$x2 <- sample(1:5, 100, replace = TRUE)
-
 # Estimate ols model with fixed effects
+data$x2 <- sample(1:5, 100, replace = TRUE)
 conleyreg(y ~ x1 | x2, data, 1000, lat = "lat", lon = "lon")
 
-# Estimate probit model with fixed effects
-conleyreg(y ~ x1 | x2, data, 1000, "probit", lat = "lat", lon = "lon")
-
-# Add panel variables
+# Estimate ols model using panel data
 data$time <- rep(1:10, each = 10)
 data$unit <- rep(1:10, times = 10)
-\donttest{
-# Estimate ols model using panel data
 conleyreg(y ~ x1, data, 1000, unit = "unit", time = "time", lat = "lat", lon = "lon")
+
+# Estimate same model with an sf object of another projection as input
+data <- sf::st_as_sf(data, coords = c("lon", "lat"), crs = 4326) |>
+  sf::st_transform(crs = "+proj=aeqd")
+conleyreg(y ~ x1, data, 1000)
 }
 
 }
