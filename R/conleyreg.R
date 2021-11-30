@@ -1202,7 +1202,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
 }
 
 # Avoid R CMD check note
-utils::globalVariables(c(".", "tp", "u", "TP"))
+utils::globalVariables(c(".", "tp", "u", "TP", "tp_id"))
 
 # Function computing distances via sf and transforming them based on the kernel
 dist_fun <- function(distances, bartlett, dist_cutoff, dist_which = NULL, lat = NULL, lon = NULL, crs = NULL) {
