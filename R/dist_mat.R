@@ -64,9 +64,11 @@
 #' distances beyond \code{dist_cutoff} to zero and actual off-diagonal zeros to NaN. Hence, these objects are only to be used in \code{conleyreg}.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Generate cross-sectional example data
 #' data <- rnd_locations(100, output_type = "data.frame")
+#' data$y <- sample(c(0, 1), 100, replace = TRUE)
+#' data$x1 <- stats::runif(100, -50, 50)
 #'
 #' # Compute distance matrix in cross-sectional case
 #' dm <- dist_mat(data, lat = "lat", lon = "lon")
@@ -75,6 +77,9 @@
 #' data$time <- rep(1:10, each = 10)
 #' data$unit <- rep(1:10, times = 10)
 #' dm <- dist_mat(data, unit = "unit", time = "time", lat = "lat", lon = "lon")
+#'
+#' # Use distance matrix in conleyreg function
+#' conleyreg(y ~ x1, data, 1000, dist_mat = dm)
 #' }
 #'
 #' @export

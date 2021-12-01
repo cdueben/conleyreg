@@ -87,7 +87,7 @@
 #' specifying \code{vcov = TRUE}. \insertNoCite{*}{conleyreg}
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Generate cross-sectional example data
 #' data <- rnd_locations(100, output_type = "data.frame")
 #' data$y <- sample(c(0, 1), 100, replace = TRUE)
