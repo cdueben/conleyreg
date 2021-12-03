@@ -1,3 +1,6 @@
+# conleyreg 0.1.6
+* Corrected typing errors in the vignette
+
 # conleyreg 0.1.5
 * Major package extension
 * Package allows distances matrices to be pre-computed

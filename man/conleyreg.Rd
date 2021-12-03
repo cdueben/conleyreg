@@ -151,7 +151,7 @@ try setting a lower \code{dist_cutoff}, use floats, select a uniform kernel, exp
 Consult the vignette, \code{vignette("conleyreg_introduction", "conleyreg")}, for a more extensive discussion.
 }
 \examples{
-\donttest{
+\dontrun{
 # Generate cross-sectional example data
 data <- rnd_locations(100, output_type = "data.frame")
 data$y <- sample(c(0, 1), 100, replace = TRUE)
