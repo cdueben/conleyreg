@@ -53,6 +53,11 @@
 #' precise and than doubles and thereby occupy less space than doubles do. They should only be used when the machine's RAM is insufficient for both the dense and
 #' the sparse matrix cases, as they affect the precision of distance values. The \code{float} option only has an effect in Bartlett kernel cases because uniform
 #' kernel applications store the data in a smaller integer data type.
+#' @param rowwise logical specifying whether to store individual rows of the distance matrix only, instead of the full matrix. If \code{TRUE}, the function uses these
+#' rows directly in the standard error correction. This option's advantage is that it induces the function to store only N x \code{ncores} cells, instead of the full
+#' N x N matrix, lowering RAM requirements. The disadvantage is that the function needs to compute twice as many distance values as in the default case (\code{FALSE}),
+#' since the symmetry of the matrix is not utilized. It hence sacrifices speed for lower RAM utilization. This parameter only has an effect in cross-sectional and
+#' unbalanced panel applications with \code{st_distance = FALSE} and \code{sparse = FALSE}.
 #' @param reg_ram_opt logical specifying whether the regression should be optimized for RAM usage. Defaults to \code{FALSE}. Changing it to \code{TRUE} slows down
 #' the function. This argument only affects the baseline estimation, not the standard error correction.
 #' @param dist_mat a distance matrix. Pre-computing a distance matrix and passing it to this argument is only more efficient than having \code{conleyreg} derive it,
@@ -131,8 +136,8 @@
 #' @export
 conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "probit", "poisson"), unit = NULL, time = NULL, lat = NULL, lon = NULL,
   kernel = c("bartlett", "uniform"), lag_cutoff = 0, intercept = TRUE, verbose = TRUE, ncores = NULL, par_dim = c("cross-section", "time"), dist_comp = NULL,
-  crs = NULL, st_distance = FALSE, dist_which = NULL, sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, float = FALSE, reg_ram_opt = FALSE, dist_mat = NULL,
-  dist_mat_conv = TRUE, vcov = FALSE, gof = FALSE) {
+  crs = NULL, st_distance = FALSE, dist_which = NULL, sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, float = FALSE, rowwise = FALSE, reg_ram_opt = FALSE,
+  dist_mat = NULL, dist_mat_conv = TRUE, vcov = FALSE, gof = FALSE) {
   # Convert estimation equation to formula, if it was entered as a character string
   formula <- stats::formula(formula)
 
@@ -188,6 +193,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     if(length(batch) != 1 || !is.logical(batch) || is.na(batch)) stop("batch must be logical and of length one")
     batch_ram_opt <- which(match.arg(batch_ram_opt, c("moderate", "none", "heavy")) == c("none", "moderate", "heavy"))
     if(length(float) != 1 || !is.logical(float) || is.na(float)) stop("float must be logical and of length one")
+    if(length(rowwise) != 1 || !is.logical(rowwise) || is.na(rowwise)) stop("rowwise must be logical and of length one")
     if(st_distance && par_dim == "cross-section" && ncores > 1) {
       par_dim <- "time"
       if(verbose) {
@@ -815,8 +821,13 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
                   as.matrix(reg_tp[, eval(x_vars), with = FALSE]), reg_tp[[res]], n_vars, haversine, batch_ram_opt)
               }
             } else {
-              XeeX_tp <- ols(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
-                reg_tp[[res]], n_vars, haversine, sparse, bartlett, float, 1L)
+              if(rowwise) {
+                XeeX_tp <- ols_r(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
+                  reg_tp[[res]], n_vars, haversine, bartlett, float, 1L)
+              } else {
+                XeeX_tp <- ols(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
+                  reg_tp[[res]], n_vars, haversine, sparse, bartlett, float, 1L)
+              }
             }
           } else {
             if(null_dist_mat && st_distance) {
@@ -923,8 +934,13 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
                 }
               }
             } else {
-              XeeX_tp <- ols(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
-                reg_tp[[res]], n_vars, haversine, sparse, bartlett, float, ncores)
+              if(rowwise) {
+                XeeX_tp <- ols_r(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
+                  reg_tp[[res]], n_vars, haversine, bartlett, float, ncores)
+              } else {
+                XeeX_tp <- ols(as.matrix(reg_tp[, eval(c(lon, lat)), with = FALSE]), n_obs_t, n_obs_t, dist_cutoff, as.matrix(reg_tp[, eval(x_vars), with = FALSE]),
+                  reg_tp[[res]], n_vars, haversine, sparse, bartlett, float, ncores)
+              }
             }
           } else {
             if(null_dist_mat && st_distance) {
@@ -1028,8 +1044,13 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
             }
           }
         } else {
-          XeeX <- ols(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), n_obs, n_obs, dist_cutoff, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_vars,
-            haversine, sparse, bartlett, float, ncores)
+          if(rowwise) {
+            XeeX <- ols_r(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), n_obs, dist_cutoff, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_vars,
+              haversine, bartlett, float, ncores)
+          } else {
+            XeeX <- ols(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), n_obs, n_obs, dist_cutoff, as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_vars,
+              haversine, sparse, bartlett, float, ncores)
+          }
         }
       } else {
         if(sparse && batch) {
@@ -1061,8 +1082,13 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
             }
           }
         } else {
-          XeeX <- lp(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_obs, n_vars, dist_cutoff,
-            haversine, sparse, bartlett, float, ncores)
+          if(rowwise) {
+            XeeX <- lp_r(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_obs, n_vars, dist_cutoff,
+              haversine, bartlett, float, ncores)
+          } else {
+            XeeX <- lp(as.matrix(reg[, eval(c(lon, lat)), with = FALSE]), as.matrix(reg[, eval(x_vars), with = FALSE]), reg[[res]], n_obs, n_vars, dist_cutoff,
+              haversine, sparse, bartlett, float, ncores)
+          }
         }
       }
     } else {

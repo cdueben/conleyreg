@@ -18,6 +18,7 @@
 // 5 ols_f_b_p Function parallely computing sparse distance matrix with a bartlett kernel and batch insert using floats and calculating spatial sandwich in ols case
 // 6 ols_s_b Function computing sparse distance matrix with a uniform kernel and batch insert and calculating spatial sandwich in ols case
 // 7 ols_s_b_p Function parallely computing sparse distance matrix with a uniform kernel and batch insert and calculating spatial sandwich in ols case
+// 8 ols_r Function computing row-wise distances and calculating spatial sandwich in ols case
 
 // 1 Function computing dense distance matrix with a bartlett kernel and calculating spatial sandwich in ols case
 // [[Rcpp::export]]
@@ -639,4 +640,280 @@ arma::mat ols_s_b_p(arma::mat &coords, unsigned int n_obs, unsigned int n_obs_t,
     arma::mat XeeXh = XeeXhC_s_s(distances, X, e, n_obs, n_obs_t, n_vars, n_cores);
     return XeeXh;
   }
+}
+
+// 8 Function computing row-wise distances and calculating spatial sandwich in ols case
+// [[Rcpp::export]]
+arma::mat ols_r(arma::mat &coords, unsigned int n_obs, double dist_cutoff, arma::mat &X, arma::vec &e, unsigned int n_vars, bool haversine, bool bartlett,
+  bool flt, unsigned int n_cores) {
+  // Set empty output matrix
+  arma::mat XeeXh(n_vars, n_vars, arma::fill::zeros);
+  // Generate a [N variables x 1] matrix with all values set to one
+  arma::mat k_mat(n_vars, 1, arma::fill::ones);
+  double dist {};
+  if(bartlett) {
+    if(flt) {
+      arma::fmat d_row(1, n_obs, arma::fill::ones);
+      if(haversine) {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+            arma::mat e_mat(1, n_obs, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::fmat distances(1, n_obs, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(0, k) = 1.0;
+                } else {
+                  dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(0, k) = (float) (1.0 - dist / dist_cutoff);
+                  }
+                }
+              }
+              e_mat.fill(e[j]);
+              XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+            }
+            #pragma omp critical
+            XeeXh += XeeXh_i;
+          }
+        } else {
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::fmat distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int j {0}; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(0, j) = 1.0;
+              } else {
+                dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, j) = (float) (1.0 - dist / dist_cutoff);
+                }
+              }
+            }
+            e_mat.fill(e[i]);
+            XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+        }
+      } else {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+            arma::mat e_mat(1, n_obs, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::fmat distances(1, n_obs, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(0, k) = 1.0;
+                } else {
+                  dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(0, k) = (float) (1.0 - dist / dist_cutoff);
+                  }
+                }
+              }
+              e_mat.fill(e[j]);
+              XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+            }
+            #pragma omp critical
+            XeeXh += XeeXh_i;
+          }
+        } else {
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::fmat distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int j {0}; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(0, j) = 1.0;
+              } else {
+                dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, j) = (float) (1.0 - dist / dist_cutoff);
+                }
+              }
+            }
+            e_mat.fill(e[i]);
+            XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+        }
+      }
+    } else {
+      arma::mat d_row(1, n_obs, arma::fill::ones);
+      if(haversine) {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+            arma::mat e_mat(1, n_obs, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::mat distances(1, n_obs, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(0, k) = 1.0;
+                } else {
+                  dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(0, k) = 1.0 - dist / dist_cutoff;
+                  }
+                }
+              }
+              e_mat.fill(e[j]);
+              XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+            }
+            #pragma omp critical
+            XeeXh += XeeXh_i;
+          }
+        } else {
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::mat distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int j {0}; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(0, j) = 1.0;
+              } else {
+                dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, j) = 1.0 - dist / dist_cutoff;
+                }
+              }
+            }
+            e_mat.fill(e[i]);
+            XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+        }
+      } else {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+            arma::mat e_mat(1, n_obs, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::mat distances(1, n_obs, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(0, k) = 1.0;
+                } else {
+                  dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(0, k) = 1.0 - dist / dist_cutoff;
+                  }
+                }
+              }
+              e_mat.fill(e[j]);
+              XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+            }
+            #pragma omp critical
+            XeeXh += XeeXh_i;
+          }
+        } else {
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::mat distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int j {0}; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(0, j) = 1.0;
+              } else {
+                dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, j) = 1.0 - dist / dist_cutoff;
+                }
+              }
+            }
+            e_mat.fill(e[i]);
+            XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+        }
+      }
+    }
+  } else {
+    arma::Mat<short int> d_row(1, n_obs, arma::fill::ones);
+    if(haversine) {
+      if(n_cores > 1) {
+        #pragma omp parallel for private(dist) num_threads(n_cores)
+        for(unsigned int i = 0; i < n_cores; i++) {
+          arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int j = i; j < n_obs; j += n_cores) {
+            arma::Mat<short int> distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int k = 0; k < n_obs; k++) {
+              if(k == j) {
+                distances.at(0, k) = 1;
+              } else {
+                dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, k) = 1;
+                }
+              }
+            }
+            e_mat.fill(e[j]);
+            XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+          #pragma omp critical
+          XeeXh += XeeXh_i;
+        }
+      } else {
+        arma::mat e_mat(1, n_obs, arma::fill::zeros);
+        for(unsigned int i {0}; i < n_obs; i++) {
+          arma::Mat<short int> distances(1, n_obs, arma::fill::zeros);
+          for(unsigned int j {0}; j < n_obs; j++) {
+            if(j == i) {
+              distances.at(0, j) = 1;
+            } else {
+              dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+              if(dist < dist_cutoff) {
+                distances.at(0, j) = 1;
+              }
+            }
+          }
+          e_mat.fill(e[i]);
+          XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+        }
+      }
+    } else {
+      if(n_cores > 1) {
+        #pragma omp parallel for private(dist) num_threads(n_cores)
+        for(unsigned int i = 0; i < n_cores; i++) {
+          arma::mat XeeXh_i(n_vars, n_vars, arma::fill::zeros);
+          arma::mat e_mat(1, n_obs, arma::fill::zeros);
+          for(unsigned int j = i; j < n_obs; j += n_cores) {
+            arma::Mat<short int> distances(1, n_obs, arma::fill::zeros);
+            for(unsigned int k = 0; k < n_obs; k++) {
+              if(k == j) {
+              distances.at(0, k) = 1;
+            } else {
+                dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(0, k) = 1;
+                }
+              }
+            }
+            e_mat.fill(e[j]);
+            XeeXh_i += ((k_mat % X.row(j).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+          }
+          #pragma omp critical
+          XeeXh += XeeXh_i;
+        }
+      } else {
+        arma::mat e_mat(1, n_obs, arma::fill::zeros);
+        for(unsigned int i {0}; i < n_obs; i++) {
+          arma::Mat<short int> distances(1, n_obs, arma::fill::zeros);
+          for(unsigned int j {0}; j < n_obs; j++) {
+            if(j == i) {
+              distances.at(0, j) = 1;
+            } else {
+              dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+              if(dist < dist_cutoff) {
+                distances.at(0, j) = 1;
+              }
+            }
+          }
+          e_mat.fill(e[i]);
+          XeeXh += ((k_mat % X.row(i).t()) * e_mat % (k_mat * ((d_row % distances) % e.t()))) * X;
+        }
+      }
+    }
+  }
+  return XeeXh;
 }

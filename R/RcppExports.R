@@ -77,6 +77,10 @@ lp_s_b_p <- function(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_
     .Call(`_conleyreg_lp_s_b_p`, coords, X, e, n_obs, n_vars, dist_cutoff, haversine, batch_ram_opt, n_cores)
 }
 
+lp_r <- function(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, bartlett, flt, n_cores) {
+    .Call(`_conleyreg_lp_r`, coords, X, e, n_obs, n_vars, dist_cutoff, haversine, bartlett, flt, n_cores)
+}
+
 lp_filling_d_d_R <- function(distances, X, e, n_obs, n_vars, n_cores) {
     .Call(`_conleyreg_lp_filling_d_d_R`, distances, X, e, n_obs, n_vars, n_cores)
 }
@@ -119,6 +123,10 @@ ols_s_b <- function(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine
 
 ols_s_b_p <- function(coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt, n_cores) {
     .Call(`_conleyreg_ols_s_b_p`, coords, n_obs, n_obs_t, dist_cutoff, X, e, n_vars, haversine, batch_ram_opt, n_cores)
+}
+
+ols_r <- function(coords, n_obs, dist_cutoff, X, e, n_vars, haversine, bartlett, flt, n_cores) {
+    .Call(`_conleyreg_ols_r`, coords, n_obs, dist_cutoff, X, e, n_vars, haversine, bartlett, flt, n_cores)
 }
 
 time_dist <- function(times, lag_cutoff, X, res, n_obs_u, n_vars, n_cores) {

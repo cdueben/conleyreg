@@ -18,6 +18,7 @@
 // 5 lp_f_b_p Function parallely calculating sparse distance matrix with a bartlett kernel and batch insert using floats and filling of spatial sandwich in logit and probit case
 // 6 lp_s_b Function calculating sparse distance matrix with a uniform kernel and batch insert and filling of spatial sandwich in logit and probit case
 // 7 lp_s_b_p Function parallely calculating sparse distance matrix with a uniform kernel and batch insert and filling of spatial sandwich in logit and probit case
+// 8 lp_r Function calculating column-wise distances and filling of spatial sandwich in logit and probit case
 
 // 1 Function calculating distance matrix and filling of spatial sandwich in logit and probit case
 // [[Rcpp::export]]
@@ -642,4 +643,320 @@ arma::mat lp_s_b_p(arma::mat &coords, arma::mat &X, arma::vec &e, unsigned int n
   }
 }
 
-
+// 8 Function calculating column-wise distances and filling of spatial sandwich in logit and probit case
+// [[Rcpp::export]]
+arma::mat lp_r(arma::mat &coords, arma::mat &X, arma::vec &e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, bool bartlett, bool flt,
+  unsigned int n_cores) {
+  arma::mat f(n_vars, n_vars, arma::fill::zeros);
+  double dist {};
+  if(bartlett) {
+    if(flt) {
+      if(haversine) {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+            arma::vec hf(n_obs);
+            arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::fmat distances(n_obs, 1, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(k, 0) = 1.0;
+                } else {
+                  dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(k, 0) = (float) (1.0 - dist / dist_cutoff);
+                  }
+                }
+              }
+              for(unsigned int k = 0; k < n_vars; k++) {
+                hf = X(j,k) * e * e(j) % distances;
+                cf.row(k) = hf.t() * X;
+              }
+              f_i += cf;
+            }
+            #pragma omp critical
+            f += f_i;
+          }
+        } else {
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::fmat distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int j = 0; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(j, 0) = 1.0;
+              } else {
+                dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(j, 0) = (float) (1.0 - dist / dist_cutoff);
+                }
+              }
+            }
+            for(unsigned int j = 0; j < n_vars; j++) {
+              hf = X(i,j) * e * e(i) % distances;
+              cf.row(j) = hf.t() * X;
+            }
+            f += cf;
+          }
+        }
+      } else {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+            arma::vec hf(n_obs);
+            arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::fmat distances(n_obs, 1, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(k, 0) = 1.0;
+                } else {
+                  dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(k, 0) = (float) (1.0 - dist / dist_cutoff);
+                  }
+                }
+              }
+              for(unsigned int k = 0; k < n_vars; k++) {
+                hf = X(j,k) * e * e(j) % distances;
+                cf.row(k) = hf.t() * X;
+              }
+              f_i += cf;
+            }
+            #pragma omp critical
+            f += f_i;
+          }
+        } else {
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::fmat distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int j = 0; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(j, 0) = 1.0;
+              } else {
+                dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(j, 0) = (float) (1.0 - dist / dist_cutoff);
+                }
+              }
+            }
+            for(unsigned int j = 0; j < n_vars; j++) {
+              hf = X(i,j) * e * e(i) % distances;
+              cf.row(j) = hf.t() * X;
+            }
+            f += cf;
+          }
+        }
+      }
+    } else {
+      if(haversine) {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+            arma::vec hf(n_obs);
+            arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::mat distances(n_obs, 1, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(k, 0) = 1.0;
+                } else {
+                  dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(k, 0) = 1.0 - dist / dist_cutoff;
+                  }
+                }
+              }
+              for(unsigned int k = 0; k < n_vars; k++) {
+                hf = X(j,k) * e * e(j) % distances;
+                cf.row(k) = hf.t() * X;
+              }
+              f_i += cf;
+            }
+            #pragma omp critical
+            f += f_i;
+          }
+        } else {
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::mat distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int j = 0; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(j, 0) = 1.0;
+              } else {
+                dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(j, 0) = 1.0 - dist / dist_cutoff;
+                }
+              }
+            }
+            for(unsigned int j = 0; j < n_vars; j++) {
+              hf = X(i,j) * e * e(i) % distances;
+              cf.row(j) = hf.t() * X;
+            }
+            f += cf;
+          }
+        }
+      } else {
+        if(n_cores > 1) {
+          #pragma omp parallel for private(dist) num_threads(n_cores)
+          for(unsigned int i = 0; i < n_cores; i++) {
+            arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+            arma::vec hf(n_obs);
+            arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+            for(unsigned int j = i; j < n_obs; j += n_cores) {
+              arma::mat distances(n_obs, 1, arma::fill::zeros);
+              for(unsigned int k = 0; k < n_obs; k++) {
+                if(k == j) {
+                  distances.at(k, 0) = 1.0;
+                } else {
+                  dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                  if(dist < dist_cutoff) {
+                    distances.at(k, 0) = 1.0 - dist / dist_cutoff;
+                  }
+                }
+              }
+              for(unsigned int k = 0; k < n_vars; k++) {
+                hf = X(j,k) * e * e(j) % distances;
+                cf.row(k) = hf.t() * X;
+              }
+              f_i += cf;
+            }
+            #pragma omp critical
+            f += f_i;
+          }
+        } else {
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          for(unsigned int i {0}; i < n_obs; i++) {
+            arma::mat distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int j = 0; j < n_obs; j++) {
+              if(j == i) {
+                distances.at(j, 0) = 1.0;
+              } else {
+                dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(j, 0) = 1.0 - dist / dist_cutoff;
+                }
+              }
+            }
+            for(unsigned int j = 0; j < n_vars; j++) {
+              hf = X(i,j) * e * e(i) % distances;
+              cf.row(j) = hf.t() * X;
+            }
+            f += cf;
+          }
+        }
+      }
+    }
+  } else {
+    if(haversine) {
+      if(n_cores > 1) {
+        #pragma omp parallel for private(dist) num_threads(n_cores)
+        for(unsigned int i = 0; i < n_cores; i++) {
+          arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          for(unsigned int j = i; j < n_obs; j += n_cores) {
+            arma::Mat<short int> distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int k = 0; k < n_obs; k++) {
+              if(k == j) {
+                distances.at(k, 0) = 1;
+              } else {
+                dist = haversine_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(k, 0) = 1;
+                }
+              }
+            }
+            for(unsigned int k = 0; k < n_vars; k++) {
+              hf = X(j,k) * e * e(j) % distances;
+              cf.row(k) = hf.t() * X;
+            }
+            f_i += cf;
+          }
+          #pragma omp critical
+          f += f_i;
+        }
+      } else {
+        arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+        arma::vec hf(n_obs);
+        for(unsigned int i {0}; i < n_obs; i++) {
+          arma::Mat<short int> distances(n_obs, 1, arma::fill::zeros);
+          for(unsigned int j = 0; j < n_obs; j++) {
+            if(j == i) {
+              distances.at(j, 0) = 1;
+            } else {
+              dist = haversine_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+              if(dist < dist_cutoff) {
+                distances.at(j, 0) = 1;
+              }
+            }
+          }
+          for(unsigned int j = 0; j < n_vars; j++) {
+            hf = X(i,j) * e * e(i) % distances;
+            cf.row(j) = hf.t() * X;
+          }
+          f += cf;
+        }
+      }
+    } else {
+      if(n_cores > 1) {
+        #pragma omp parallel for private(dist) num_threads(n_cores)
+        for(unsigned int i = 0; i < n_cores; i++) {
+          arma::mat f_i(n_vars, n_vars, arma::fill::zeros);
+          arma::vec hf(n_obs);
+          arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+          for(unsigned int j = i; j < n_obs; j += n_cores) {
+            arma::Mat<short int> distances(n_obs, 1, arma::fill::zeros);
+            for(unsigned int k = 0; k < n_obs; k++) {
+              if(k == j) {
+                distances.at(k, 0) = 1;
+              } else {
+                dist = euclidean_dist(coords(j, 1), coords(k, 1), coords(j, 0), coords(k, 0));
+                if(dist < dist_cutoff) {
+                  distances.at(k, 0) = 1;
+                }
+              }
+            }
+            for(unsigned int k = 0; k < n_vars; k++) {
+              hf = X(j,k) * e * e(j) % distances;
+              cf.row(k) = hf.t() * X;
+            }
+            f_i += cf;
+          }
+          #pragma omp critical
+          f += f_i;
+        }
+      } else {
+        arma::mat cf(n_vars, n_vars, arma::fill::zeros);
+        arma::vec hf(n_obs);
+        for(unsigned int i {0}; i < n_obs; i++) {
+          arma::Mat<short int> distances(n_obs, 1, arma::fill::zeros);
+          for(unsigned int j = 0; j < n_obs; j++) {
+            if(j == i) {
+              distances.at(j, 0) = 1;
+            } else {
+              dist = euclidean_dist(coords(i, 1), coords(j, 1), coords(i, 0), coords(j, 0));
+              if(dist < dist_cutoff) {
+                distances.at(j, 0) = 1;
+              }
+            }
+          }
+          for(unsigned int j = 0; j < n_vars; j++) {
+            hf = X(i,j) * e * e(i) % distances;
+            cf.row(j) = hf.t() * X;
+          }
+          f += cf;
+        }
+      }
+    }
+  }
+  return f;
+}

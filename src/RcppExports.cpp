@@ -326,6 +326,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lp_r
+arma::mat lp_r(arma::mat& coords, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, double dist_cutoff, bool haversine, bool bartlett, bool flt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_lp_r(SEXP coordsSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP dist_cutoffSEXP, SEXP haversineSEXP, SEXP bartlettSEXP, SEXP fltSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< bool >::type bartlett(bartlettSEXP);
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(lp_r(coords, X, e, n_obs, n_vars, dist_cutoff, haversine, bartlett, flt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lp_filling_d_d_R
 arma::mat lp_filling_d_d_R(arma::mat& distances, arma::mat& X, arma::vec& e, unsigned int n_obs, unsigned int n_vars, unsigned int n_cores);
 RcppExport SEXP _conleyreg_lp_filling_d_d_R(SEXP distancesSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_obsSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
@@ -526,6 +546,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ols_r
+arma::mat ols_r(arma::mat& coords, unsigned int n_obs, double dist_cutoff, arma::mat& X, arma::vec& e, unsigned int n_vars, bool haversine, bool bartlett, bool flt, unsigned int n_cores);
+RcppExport SEXP _conleyreg_ols_r(SEXP coordsSEXP, SEXP n_obsSEXP, SEXP dist_cutoffSEXP, SEXP XSEXP, SEXP eSEXP, SEXP n_varsSEXP, SEXP haversineSEXP, SEXP bartlettSEXP, SEXP fltSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_obs(n_obsSEXP);
+    Rcpp::traits::input_parameter< double >::type dist_cutoff(dist_cutoffSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_vars(n_varsSEXP);
+    Rcpp::traits::input_parameter< bool >::type haversine(haversineSEXP);
+    Rcpp::traits::input_parameter< bool >::type bartlett(bartlettSEXP);
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(ols_r(coords, n_obs, dist_cutoff, X, e, n_vars, haversine, bartlett, flt, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 // time_dist
 arma::mat time_dist(arma::vec& times, double lag_cutoff, arma::mat& X, arma::vec& res, unsigned int n_obs_u, unsigned int n_vars, unsigned int n_cores);
 RcppExport SEXP _conleyreg_time_dist(SEXP timesSEXP, SEXP lag_cutoffSEXP, SEXP XSEXP, SEXP resSEXP, SEXP n_obs_uSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
@@ -564,6 +604,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_conleyreg_lp_f_b_p", (DL_FUNC) &_conleyreg_lp_f_b_p, 9},
     {"_conleyreg_lp_s_b", (DL_FUNC) &_conleyreg_lp_s_b, 8},
     {"_conleyreg_lp_s_b_p", (DL_FUNC) &_conleyreg_lp_s_b_p, 9},
+    {"_conleyreg_lp_r", (DL_FUNC) &_conleyreg_lp_r, 10},
     {"_conleyreg_lp_filling_d_d_R", (DL_FUNC) &_conleyreg_lp_filling_d_d_R, 6},
     {"_conleyreg_lp_filling_d_s_R", (DL_FUNC) &_conleyreg_lp_filling_d_s_R, 6},
     {"_conleyreg_lp_filling_s_d_R", (DL_FUNC) &_conleyreg_lp_filling_s_d_R, 6},
@@ -575,6 +616,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_conleyreg_ols_f_b_p", (DL_FUNC) &_conleyreg_ols_f_b_p, 10},
     {"_conleyreg_ols_s_b", (DL_FUNC) &_conleyreg_ols_s_b, 9},
     {"_conleyreg_ols_s_b_p", (DL_FUNC) &_conleyreg_ols_s_b_p, 10},
+    {"_conleyreg_ols_r", (DL_FUNC) &_conleyreg_ols_r, 10},
     {"_conleyreg_time_dist", (DL_FUNC) &_conleyreg_time_dist, 7},
     {NULL, NULL, 0}
 };

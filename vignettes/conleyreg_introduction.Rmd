@@ -1,7 +1,7 @@
 ---
 title: "Introduction to conleyreg"
 author: "Christian Düben"
-date: "Updated November 23, 2021"
+date: "Updated December 05, 2021"
 output: 
   rmarkdown::html_vignette:
     number_sections: true
@@ -32,17 +32,6 @@ knitr::opts_chunk$set(
 
 <p style="text-align: justify">This package is built on memory efficiency, speed, and flexibility regarding applications and user preferences. Deriving distance matrices is the most time consuming task in calculating Conley standard errors. With a small data set of 5,000 observations, there are 25 million bilateral distances linking each point to all other points and itself. With a data set of 50,000 observations, the distance matrix contains 2.5 billion cells. conleyreg is highly optimized to run computations on even larger data at high speeds and efficient RAM usage. A considerable share of the internal code is written in C++, which is not just faster than R, but also allows to use more efficient data types than the ones available in R. While the exported functions `conleyreg` and `dist_mat` come with reasonable defaults, they offer a number of parameters with which you can tailor their behavior to your application. The subsequent paragraphs guide you through the options and explain what they imply in more detail.</p>
 
-<!-- <p style="text-align: justify">Let us begin by generating a sample of 5,000 random, globally distributed longlat points:</p> -->
-
-<!-- ```{r, eval = FALSE} -->
-<!-- # Generate 5,000 random longlat points -->
-<!-- data <- sf::st_bbox(c(xmin = -180, xmax = 180, ymin = -90, ymax = 90), crs = 4326) |>  -->
-<!--   sf::st_as_sfc() |>  -->
-<!--   sf::st_sf() |>  -->
-<!--   sf::st_sample(5000) |>  -->
-<!--   sf::st_sf() -->
-<!-- ``` -->
-
 ## Sparse Matrices
 <p style="text-align: justify">One feature that you can explicitly control in conleyreg is the use of sparse matrices. As the size of the distance matrix grows exponentially in the number of observations, it quickly surpasses your computer's memory limit. A data set of 50,000 points implies 2.5 billion matrix cells. This is where sparse matrices come in handy. Instead of storing all cell values, they only store those that are not zero. Unless multiple points share a location, just $1/N$ of all cells in a distance matrix - those along the diagonal - are zero. However, `conleyreg` does not directly store distances in those cells. The function transforms distances into weights based on the specified distance cutoff and kernel. Only cells with a distance below `dist_cutoff` are assigned a non-zero weight. If this radius is much smaller than the overall sample region, a vast majority of cells is set to zero - assuming an even distribution of points. In that case, a sparse matrix requires less RAM than a conventional dense matrix. Note that this advantage only holds with many zeros. Otherwise, sparse matrices can even be larger than their dense counterparts. We can illustrate the size differences using a global data set of 5,000 points combined with various distance cutoffs and the below described Bartlett kernel:</p>
 
@@ -68,6 +57,13 @@ knitr::include_graphics("matrix_bctimes.png")
 <p style="text-align: justify">When using conleyreg's internal distance computations, i.e. `st_distance = FALSE`, it keeps the distance matrix or weights matrix in C++. Accordingly, the function can make use of data types that do not exist in R. With `kernel = "uniform"`, the function stores values as short integers, each of which is two bytes in size. R, in contrast, only knows regular integers, measuring four bytes each. With `kernel = "bartlett"`, you can choose between doubles (`float = FALSE`) and floats (`float = TRUE`). The former occupies eight bytes per value, as it would do in R, whereas the latter occupies four bytes per value. However, because floats store numbers at lower precision than doubles do, this choice can affect the results. In conclusion, you should only use floats, if your machine is unable to accomodate both a dense (`sparse = FALSE`) and a sparse matrix (`sparse = TRUE`). The above mentioned 2.5 billion matrix cells, thus, occupy 20GB when using doubles, 10GB when using floats, and 5GB when using short integers in a dense matrix. Sparse matrices can use the same data types, but the overall matrix size depends on how many values are below `dist_cutoff`.</p>
 
 <p style="text-align: justify">Whereas `conleyreg` directly stores the weights, without storing the distances they are based on, the `dist_mat` function does return the actual distance values. And because these are exported to R, the float data type is not available. By specifying `dist_round = TRUE`, you can, however, round the distances to full kilometers. The resulting cell values then occupy four instead of eight bytes each.</p>
+
+## Row-Wise Distances
+<p style="text-align: justify">As the above paragraphs illustrate, this package offers a number of options with which you can control distance matrices' RAM requirements. And irrespective of whether you use sparse matrices, the float data type, or rounded distances, the functions loop over $N(N-1)/2$ unique bilateral distances, given symmetry and zeros along the diagonal. The difference between $N(N-1)/2$ and $N^2$ can be billions of iterations in the case of larger data sets. Making use of this speed advantage implies computing the full distance matrix before inserting its values into the standard error corrections.</p>
+
+<p style="text-align: justify">Dropping the $N(N-1)/2$ technique, we can avoid storing the entire distance matrix. The spatial sandwich derivations do not make use of the full distance matrix at once anyway, but loop over its rows. By specifying `rowwise = TRUE`, you instruct the function to directly insert rows into the subsequent computations. The function then only has to store $N \times$ `ncores` distance matrix cells at once. Though, because it discards rows after use, it has to derive $N(N-1)$ distances - twice as many as in the default `rowwise = FALSE` application.</p>
+
+<p style="text-align: justify">The `rowwise` parameter is one out of various options in conleyreg targeting a trade-off between computational speed and RAM efficiency. It can e.g. be useful when the machine's RAM space is insufficient but the `dist_cutoff` is too high for sparse matrices to offer a size advantage.</p>
 
 ## Pre-Computed Distances
 <p style="text-align: justify">When estimating a model through `conleyreg`, it is usually the computationally best solution to let the function derive distances internally. Yet, there are a few cases in which you might want to pre-compute distance matrices. One example is an application where you estimate a number of models on the exact same data, e.g. trying a number of different distance cutoffs. Then, it is inefficient to have the function re-estimate the same distances in each specification. Instead, you can compute distances once and then pass them to `conleyreg` via the `dist_mat` parameter. While you can enter distances derived through functions outside this package, using conleyreg's `dist_mat` function is the recommended way. It does not only make sure that the distances are stored in the right format, but is also computationally optimized and pre-computes other results that are constant across estimations on the same data. Employing functions outside the conleyreg package is mostly appropriate when requiring a distance function that the package does not include - e.g. Tobler's hiking function, which is based on topography and expresses distances in terms of travel time.</p>
