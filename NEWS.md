@@ -1,5 +1,7 @@
 # conleyreg 0.1.6
-* Corrected typing errors in the vignette
+* `rowwise` option added
+* OpenMP optional
+* `par_dim` can be specified based on language
 
 # conleyreg 0.1.5
 * Major package extension

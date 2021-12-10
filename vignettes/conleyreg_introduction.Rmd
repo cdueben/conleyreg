@@ -1,7 +1,7 @@
 ---
 title: "Introduction to conleyreg"
 author: "Christian Düben"
-date: "Updated December 05, 2021"
+date: "Updated December 10, 2021"
 output: 
   rmarkdown::html_vignette:
     number_sections: true
@@ -86,7 +86,7 @@ knitr::include_graphics("matrix_uniform.png")
 <br>
 
 # Parallelization
-<p style="text-align: justify">This package parallelizes code across all of your machine's CPU cores by default. When parallelization is activated, i.e. unless you specify `ncores = 1`, you can determine the dimension along which the package parallelizes. By default, it is the cross-sectional dimension and largely done in the C++ code. Alternatively, you can change it to the time dimension via `par_dim = "time"`.</p>
+<p style="text-align: justify">This package parallelizes code across all of your machine's CPU cores by default. When parallelization is activated, i.e. unless you specify `ncores = 1`, you can determine the dimension along which the package parallelizes. By default, it is the cross-sectional dimension, parallelizing the computations on spatial correlation via OpenMP in C++ and on serial correlation in R via the parallel package. In case of the time dimension, it is the other way around. Alternatively, you can modify the parallel structure stating the language, R and C++, rather than the dimension. Some MAC users do not have access to OpenMP by default. `par_dim` defaults to `"r"` in that case. Thus, depending on the application, the package can be notably faster on Windows and Linux than on MACs.</p>
 <br>
 
 # Input Data Formats

@@ -15,7 +15,7 @@ dist_mat(
   crs = NULL,
   verbose = TRUE,
   ncores = NULL,
-  par_dim = c("cross-section", "time"),
+  par_dim = c("cross-section", "time", "r", "cpp"),
   sparse = FALSE,
   batch = TRUE,
   batch_ram_opt = NULL,
@@ -59,9 +59,12 @@ the data is in longlat format (EPSG: 4326), i.e. not projected. If the projectio
 
 \item{ncores}{the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs.}
 
-\item{par_dim}{the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. When
-\code{st_distance = TRUE}, this setting only affects the parallelization in standard error correction regarding serial correlation, with parallelization in the
-distance computations automatically set to the time dimension.}
+\item{par_dim}{the dimension along which the function parallelizes in unbalanced panel applications. Can be set to \code{"cross-section"} (default) or
+\code{"time"}. Use \code{"r"} and \code{"cpp"} to define parallelization based on the language rather than the dimension. In this function, \code{"r"} is
+equivalent to \code{"time"} and parallelizes along the time dimension using the parallel package. \code{"cross-section"} is equivalent to \code{"cpp"} and
+parallelizes along the cross-sectional dimension using OpenMP in C++. Some MAC users do not have access to OpenMP by default. \code{par_dim} is then always set to
+\code{"r"}. Thus, depending on the application, the function can be notably faster on Windows and Linux than on MACs. When \code{st_distance = TRUE}, \code{par_dim}
+defaults to \code{"time"}.}
 
 \item{sparse}{logical specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect
 when \code{st_distance = FALSE}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located

@@ -23,9 +23,11 @@
 #' @param intercept logical specifying whether to include an intercept. Defaults to \code{TRUE}. Fixed effects models omit the intercept automatically.
 #' @param verbose logical specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.
 #' @param ncores the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs.
-#' @param par_dim the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. When
-#' \code{st_distance = TRUE}, this setting only affects the parallelization in the standard error correction regarding serial correlation, with parallelization in
-#' the distance computations automatically set to the time dimension.
+#' @param par_dim the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. With
+#' the former option, the function parallelizes the spatial correlation code in C++ using OpenMP and the serial correlation part in R using the parallel package.
+#' With the latter option, it is the other way around. Use \code{"r"} and \code{"cpp"} to define parallelization based on the language rather than the dimension.
+#' Some MAC users do not have access to OpenMP by default. \code{par_dim} is then always set to \code{"r"}. Thus, depending on the application, the function can be
+#' notably faster on Windows and Linux than on MACs.
 #' @param dist_comp choice between \code{"spherical"} and \code{"planar"} distance computations. When unspecified, the input data determines the method: longlat uses
 #' spherical (Haversine) distances, alternatives (projected data) use planar (Euclidean) distances. When inserting projected data but specifying
 #' \code{dist_comp = "spherical"}, the data is transformed to longlat. Combining unprojected data with \code{dist_comp = "planar"} transforms the data to an
@@ -135,9 +137,9 @@
 #'
 #' @export
 conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "probit", "poisson"), unit = NULL, time = NULL, lat = NULL, lon = NULL,
-  kernel = c("bartlett", "uniform"), lag_cutoff = 0, intercept = TRUE, verbose = TRUE, ncores = NULL, par_dim = c("cross-section", "time"), dist_comp = NULL,
-  crs = NULL, st_distance = FALSE, dist_which = NULL, sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, float = FALSE, rowwise = FALSE, reg_ram_opt = FALSE,
-  dist_mat = NULL, dist_mat_conv = TRUE, vcov = FALSE, gof = FALSE) {
+  kernel = c("bartlett", "uniform"), lag_cutoff = 0, intercept = TRUE, verbose = TRUE, ncores = NULL, par_dim = c("cross-section", "time", "r", "cpp"),
+  dist_comp = NULL, crs = NULL, st_distance = FALSE, dist_which = NULL, sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, float = FALSE, rowwise = FALSE,
+  reg_ram_opt = FALSE, dist_mat = NULL, dist_mat_conv = TRUE, vcov = FALSE, gof = FALSE) {
   # Convert estimation equation to formula, if it was entered as a character string
   formula <- stats::formula(formula)
 
@@ -157,10 +159,18 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
   # Set parallel configuration
   if(is.null(ncores)) {
     ncores <- parallel::detectCores()
-    par_dim <- match.arg(par_dim)
+    if(openmp_installed()) {
+      par_dim <- match.arg(par_dim)
+    } else {
+      par_dim <- "r"
+    }
   } else if(is.numeric(ncores) && ncores > 0) {
     ncores <- as.integer(ncores)
-    par_dim <- match.arg(par_dim)
+    if(openmp_installed()) {
+      par_dim <- match.arg(par_dim)
+    } else {
+      par_dim <- "r"
+    }
   } else {
     stop("ncores must be either NULL or a positive integer")
   }
@@ -194,13 +204,6 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     batch_ram_opt <- which(match.arg(batch_ram_opt, c("moderate", "none", "heavy")) == c("none", "moderate", "heavy"))
     if(length(float) != 1 || !is.logical(float) || is.na(float)) stop("float must be logical and of length one")
     if(length(rowwise) != 1 || !is.logical(rowwise) || is.na(rowwise)) stop("rowwise must be logical and of length one")
-    if(st_distance && par_dim == "cross-section" && ncores > 1) {
-      par_dim <- "time"
-      if(verbose) {
-        message('Parallelization along the cross-sectional dimension unavailable when st_distance = TRUE. Thus, par_dim changed to "time". Specify ncores = 1 to run ',
-          'the code serially instead.')
-      }
-    }
 
     # Subset the data to variables that are used in the estimation
     if(any(class(data) == "data.table")) {
@@ -760,7 +763,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
           }
         }
         n_obs <- NROW(reg)
-        if(ncores > 1 && par_dim == "time") {
+        if(ncores > 1 && par_dim %in% c("time", "r")) {
           # Parallelization along time dimension
           cl <- parallel::makePSOCKcluster(ncores)
           doParallel::registerDoParallel(cl)
@@ -796,7 +799,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       # In unbalanced panels, the distance matrix varies across time periods
       data.table::setkeyv(reg, time)
       tps <- sort(unique(reg[[time]]))
-      if(ncores > 1 && par_dim == "time") {
+      if(ncores > 1 && par_dim %in% c("time", "r")) {
         # Parallel computation along time dimension
         cl <- parallel::makePSOCKcluster(ncores)
         doParallel::registerDoParallel(cl)
@@ -1185,7 +1188,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       data.table::setkeyv(reg, unit)
       # In balanced panels, the number of observations per unit is constant across all units
       if(balanced) n_obs_u <- NROW(reg[.(reg[1]), eval(unit), with = FALSE, on = eval(unit)])
-      if(ncores > 1 && par_dim == "cross-section") {
+      if(ncores > 1 && par_dim %in% c("cross-section", "r")) {
         # Parallel computation along cross-sectional dimension
         cl <- parallel::makePSOCKcluster(ncores)
         doParallel::registerDoParallel(cl)

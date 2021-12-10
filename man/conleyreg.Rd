@@ -18,7 +18,7 @@ conleyreg(
   intercept = TRUE,
   verbose = TRUE,
   ncores = NULL,
-  par_dim = c("cross-section", "time"),
+  par_dim = c("cross-section", "time", "r", "cpp"),
   dist_comp = NULL,
   crs = NULL,
   st_distance = FALSE,
@@ -70,9 +70,11 @@ their location over time.}
 
 \item{ncores}{the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs.}
 
-\item{par_dim}{the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. When
-\code{st_distance = TRUE}, this setting only affects the parallelization in the standard error correction regarding serial correlation, with parallelization in
-the distance computations automatically set to the time dimension.}
+\item{par_dim}{the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. With
+the former option, the function parallelizes the spatial correlation code in C++ using OpenMP and the serial correlation part in R using the parallel package.
+With the latter option, it is the other way around. Use \code{"r"} and \code{"cpp"} to define parallelization based on the language rather than the dimension.
+Some MAC users do not have access to OpenMP by default. \code{par_dim} is then always set to \code{"r"}. Thus, depending on the application, the function can be
+notably faster on Windows and Linux than on MACs.}
 
 \item{dist_comp}{choice between \code{"spherical"} and \code{"planar"} distance computations. When unspecified, the input data determines the method: longlat uses
 spherical (Haversine) distances, alternatives (projected data) use planar (Euclidean) distances. When inserting projected data but specifying

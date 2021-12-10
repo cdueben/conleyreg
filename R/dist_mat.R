@@ -28,9 +28,12 @@
 #' the data is in longlat format (EPSG: 4326), i.e. not projected. If the projection does not use meters as units, this function converts to units to meters.
 #' @param verbose logical specifying whether to print messages on intermediate estimation steps. Defaults to \code{TRUE}.
 #' @param ncores the number of CPU cores to use in the estimations. Defaults to the machine's number of CPUs.
-#' @param par_dim the dimension along which the function parallelizes in panel applications. Can be set to \code{"cross-section"} (default) or \code{"time"}. When
-#' \code{st_distance = TRUE}, this setting only affects the parallelization in standard error correction regarding serial correlation, with parallelization in the
-#' distance computations automatically set to the time dimension.
+#' @param par_dim the dimension along which the function parallelizes in unbalanced panel applications. Can be set to \code{"cross-section"} (default) or
+#' \code{"time"}. Use \code{"r"} and \code{"cpp"} to define parallelization based on the language rather than the dimension. In this function, \code{"r"} is
+#' equivalent to \code{"time"} and parallelizes along the time dimension using the parallel package. \code{"cross-section"} is equivalent to \code{"cpp"} and
+#' parallelizes along the cross-sectional dimension using OpenMP in C++. Some MAC users do not have access to OpenMP by default. \code{par_dim} is then always set to
+#' \code{"r"}. Thus, depending on the application, the function can be notably faster on Windows and Linux than on MACs. When \code{st_distance = TRUE}, \code{par_dim}
+#' defaults to \code{"time"}.
 #' @param sparse logical specifying whether to use sparse rather than dense (regular) matrices in distance computations. Defaults to \code{FALSE}. Only has an effect
 #' when \code{st_distance = FALSE}. Sparse matrices are more efficient than dense matrices, when the distance matrix has a lot of zeros arising from points located
 #' outside the respective \code{dist_cutoff}. It is recommended to keep the default unless the machine is unable to allocate enough memory. The function always uses
@@ -84,17 +87,25 @@
 #'
 #' @export
 dist_mat <- function(data, unit = NULL, time = NULL, lat = NULL, lon = NULL, dist_comp = NULL, dist_cutoff = NULL, crs = NULL, verbose = TRUE, ncores = NULL,
-  par_dim = c("cross-section", "time"), sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, dist_round = FALSE, st_distance = FALSE, dist_which = NULL) {
+  par_dim = c("cross-section", "time", "r", "cpp"), sparse = FALSE, batch = TRUE, batch_ram_opt = NULL, dist_round = FALSE, st_distance = FALSE, dist_which = NULL) {
   # Check whether data is panel
   panel <- !is.null(time)
 
   # Set parallel configuration
   if(is.null(ncores)) {
     ncores <- parallel::detectCores()
-    par_dim <- match.arg(par_dim)
+    if(openmp_installed()) {
+      par_dim <- match.arg(par_dim)
+    } else {
+      par_dim <- "r"
+    }
   } else if(is.numeric(ncores) && ncores > 0) {
     ncores <- as.integer(ncores)
-    par_dim <- match.arg(par_dim)
+    if(openmp_installed()) {
+      par_dim <- match.arg(par_dim)
+    } else {
+      par_dim <- "r"
+    }
   } else {
     stop("ncores must be either NULL or a positive integer")
   }
@@ -116,7 +127,7 @@ dist_mat <- function(data, unit = NULL, time = NULL, lat = NULL, lon = NULL, dis
   if(length(dist_round) != 1 || !is.logical(dist_round) || is.na(dist_round)) stop("dist_round must be logical and of length one")
   if(length(st_distance) != 1 || !is.logical(st_distance) || is.na(st_distance)) stop("st_distance must be logical and of length one")
   batch_ram_opt <- which(match.arg(batch_ram_opt, c("moderate", "none", "heavy")) == c("none", "moderate", "heavy"))
-  if(st_distance && par_dim == "cross-section" && ncores > 1) {
+  if(st_distance && par_dim %in% c("cross-section", "cpp") && ncores > 1L) {
     par_dim <- "time"
     if(verbose) {
       message('Parallelization along the cross-sectional dimension unavailable when st_distance = TRUE. Thus, par_dim changed to "time". Specify ncores = 1 to run ',
@@ -309,7 +320,7 @@ dist_mat <- function(data, unit = NULL, time = NULL, lat = NULL, lon = NULL, dis
         ncores)
     } else {
       # Unbalanced panel
-      if(ncores > 1) {
+      if(ncores > 1 && par_dim %in% c("time", "r")) {
         # Parallel computation along time dimension
         cl <- parallel::makePSOCKcluster(ncores)
         doParallel::registerDoParallel(cl)

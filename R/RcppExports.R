@@ -129,6 +129,10 @@ ols_r <- function(coords, n_obs, dist_cutoff, X, e, n_vars, haversine, bartlett,
     .Call(`_conleyreg_ols_r`, coords, n_obs, dist_cutoff, X, e, n_vars, haversine, bartlett, flt, n_cores)
 }
 
+openmp_installed <- function() {
+    .Call(`_conleyreg_openmp_installed`)
+}
+
 time_dist <- function(times, lag_cutoff, X, res, n_obs_u, n_vars, n_cores) {
     .Call(`_conleyreg_time_dist`, times, lag_cutoff, X, res, n_obs_u, n_vars, n_cores)
 }

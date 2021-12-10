@@ -1,7 +1,15 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(cpp11)]]
-#include <omp.h>
+#ifdef _OPENMP
+  #include <omp.h>
+#else
+  #define omp_get_num_threads()  1
+  #define omp_get_thread_num()   0
+  #define omp_get_max_threads()  1
+  #define omp_get_thread_limit() 1
+  #define omp_get_num_procs()    1
+#endif
 // [[Rcpp::plugins(openmp)]]
 #include <cmath>
 #include "XeeXhC.h"

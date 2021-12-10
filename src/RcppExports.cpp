@@ -566,6 +566,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// openmp_installed
+bool openmp_installed();
+RcppExport SEXP _conleyreg_openmp_installed() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(openmp_installed());
+    return rcpp_result_gen;
+END_RCPP
+}
 // time_dist
 arma::mat time_dist(arma::vec& times, double lag_cutoff, arma::mat& X, arma::vec& res, unsigned int n_obs_u, unsigned int n_vars, unsigned int n_cores);
 RcppExport SEXP _conleyreg_time_dist(SEXP timesSEXP, SEXP lag_cutoffSEXP, SEXP XSEXP, SEXP resSEXP, SEXP n_obs_uSEXP, SEXP n_varsSEXP, SEXP n_coresSEXP) {
@@ -617,6 +627,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_conleyreg_ols_s_b", (DL_FUNC) &_conleyreg_ols_s_b, 9},
     {"_conleyreg_ols_s_b_p", (DL_FUNC) &_conleyreg_ols_s_b_p, 10},
     {"_conleyreg_ols_r", (DL_FUNC) &_conleyreg_ols_r, 10},
+    {"_conleyreg_openmp_installed", (DL_FUNC) &_conleyreg_openmp_installed, 0},
     {"_conleyreg_time_dist", (DL_FUNC) &_conleyreg_time_dist, 7},
     {NULL, NULL, 0}
 };
