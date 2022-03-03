@@ -1,3 +1,6 @@
+# conleyreg 0.1.7
+* Adjusted to a change in how fixest objects list obsRemoved
+
 # conleyreg 0.1.6
 * `rowwise` option added
 * OpenMP optional

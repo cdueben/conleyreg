@@ -589,7 +589,7 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
     }
     reg_vcov <- reg$cov.unscaled
     if(reg$nobs != reg$nobs_origin) {
-      if(any(class(data) == "data.table")) data <- data[-eval(reg$obsRemoved),] else data <- data[-reg$obsRemoved,]
+      if(any(class(data) == "data.table")) data <- data[eval(reg$obs_selection$obsRemoved),] else data <- data[reg$obs_selection$obsRemoved,]
     }
     if(gof) {
       if(length(all.vars(formula)) > 1) gof_outp <- c("pr2", "apr2") else gof_outp <- "pr2"
@@ -1254,6 +1254,3 @@ dist_fun <- function(distances, bartlett, dist_cutoff, dist_which = NULL, lat = 
   return(distances)
 }
 
-.onAttach <- function(libname, pkgname) {
-  packageStartupMessage('conleyreg 0.1.5 introduces major changes to the function. Read the manual to learn about the updated arguments.')
-}
