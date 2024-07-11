@@ -10,6 +10,8 @@ Description: Functions calculating Conley (1999) <doi:10.1016/S0304-4076(98)0008
   the vignette.
 License: MIT + file LICENSE
 Encoding: UTF-8
+URL: https://github.com/cdueben/conleyreg
+BugReports: https://github.com/cdueben/conleyreg/issues
 LazyData: true
 Imports: base, stats, sf, Rcpp, data.table, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix, lwgeom, s2, methods
 Suggests: rmarkdown, knitr
