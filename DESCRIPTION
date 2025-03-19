@@ -1,7 +1,7 @@
 Package: conleyreg
 Type: Package
 Title: Estimations using Conley Standard Errors
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: c(person("Christian", "Düben", email = "cdueben.ml+cran@proton.me", role = c("aut", "cre")), person("Richard", "Bluhm", role = "cph"), 
   person("Luis", "Calderon", role = "cph"), person("Darin", "Christensen", role = "cph"), person("Timothy", "Conley", role = "cph"), person("Thiemo", "Fetzer", role = "cph"), 
   person("Leander", "Heldring", role = "cph"))
@@ -13,10 +13,10 @@ Encoding: UTF-8
 URL: https://github.com/cdueben/conleyreg
 BugReports: https://github.com/cdueben/conleyreg/issues
 LazyData: true
-Imports: base, stats, sf, Rcpp, data.table, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix, lwgeom, s2, methods
+Imports: stats, sf, Rcpp, data.table, lmtest, foreach, parallel, doParallel, Rdpack, fixest, Matrix, lwgeom, s2, methods
 Suggests: rmarkdown, knitr
 LinkingTo: Rcpp, RcppArmadillo
 RdMacros: Rdpack
 SystemRequirements: GNU make
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr

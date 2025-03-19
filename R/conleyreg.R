@@ -215,6 +215,10 @@ conleyreg <- function(formula, data, dist_cutoff, model = c("ols", "logit", "pro
       rm(nc_d)
     }
 
+    if(panel && (!is.numeric(data[[unit]]) || !is.numeric(data[[time]]))) {
+      stop("unit and time must be numeric in panel applications")
+    }
+
     # Check spatial attributes
     if(verbose) message("Checking spatial attributes")
     if(sf_data) {

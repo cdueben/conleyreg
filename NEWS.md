@@ -1,3 +1,7 @@
+# conleyreg 0.1.8
+* Upgraded to R's current default C++17
+* Enforced panels to have numeric cross-sectional and temporal identifiers
+
 # conleyreg 0.1.7
 * Adjusted to a change in how fixest objects list obsRemoved
 

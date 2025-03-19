@@ -1,6 +1,5 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(cpp11)]]
 #include <cmath>
 
 // Function calculating sandwich in logit and probit regressions
